@@ -1,0 +1,51 @@
+.display-inline div {
+    display: inline-block;
+}
+
+.display-inline div.picker{
+    width: 200px;
+    padding: 5px 3px;
+}
+
+.display-inline div.add_img{
+    width: 105PX;
+    padding-left: 10PX;
+    padding-top: : 10PX;
+}
+.end-time{
+	width: 150px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid #aaa;
+}
+td {
+    padding: 8px 5px;
+}
+.picker input[type='text'] {
+    border-radius: 4px;
+    height: 20px;
+    border-style: ridge;
+}
+
+.ui-menu .ui-menu-item a {
+    font-size: 14px;
+}
+
+#saveBtn,#closeBtn{
+	border: 1px solid #888;
+    background-color: #bbb;
+    height: 30px;
+    width: 60px;
+    font-size: 16px;
+    margin: 10px;
+    border-radius: 4px;
+    outline: none;
+}
+.remove_img img{
+	width: 20px;
+}
