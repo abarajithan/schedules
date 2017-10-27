@@ -115,10 +115,12 @@ var dateOptions = {
 			for (var j = 0; j < childrens.length; j++) {
 				
 				var startDate = $(childrens[j]).find('#'+dayArray[i]+'-start-datepicker-'+j).val();
-				startDate = moment(moment(startDate).format('mm/dd/yyyy')).format('YYYY-MM-DD')
-
+				if(startDate != '')
+					startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
+				
 				var endDate = $(childrens[j]).find('#'+dayArray[i]+'-end-datepicker-'+j).val();
-				endDate = moment(moment(endDate).format('mm/dd/yyyy')).format('YYYY-MM-DD')
+				if(endDate != '')
+					endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
 
 				var startTime = $(childrens[j]).find('#'+dayArray[i]+'-start-timepicker-'+j).val();
 				startTime = convertToMinutes(startTime);
