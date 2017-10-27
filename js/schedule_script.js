@@ -1,4 +1,18 @@
 
+var timeOptions = {
+			timeFormat: 'h:mm p',
+		    interval: 60,
+		    minTime: '8',
+		    maxTime: '20',
+		    dynamic: false,
+		    dropdown: true,
+		    scrollbar: true
+		};
+var dateOptions = {
+			minDate: -60,
+			changeMonth: true,
+  			changeYear: true
+		};
 (function addRow(){
 	var day;
 	var dayArray = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -26,25 +40,9 @@
 						'</div>'+
 					'</div>';
 			$("#"+day+"-td").append(template);		
-			$("#"+day+"-start-datepicker-"+index ).datepicker({
-				minDate: -30,
-				changeMonth: true,
-      			changeYear: true
-			});
-			$("#"+day+"-end-datepicker-"+index ).datepicker({
-				minDate: -30,
-				changeMonth: true,
-      			changeYear: true
-			});
-			$("#"+day+"-start-timepicker-"+index ).timepicker({
-				timeFormat: 'h:mm p',
-			    interval: 60,
-			    minTime: '8',
-			    maxTime: '20',
-			    dynamic: false,
-			    dropdown: true,
-			    scrollbar: true
-			});
+			$("#"+day+"-start-datepicker-"+index ).datepicker(dateOptions);
+			$("#"+day+"-end-datepicker-"+index ).datepicker(dateOptions);
+			$("#"+day+"-start-timepicker-"+index ).timepicker(timeOptions);
 	}
 })();
 
@@ -70,9 +68,9 @@ $('body').on('click', '.add_img img',function(){
 						'</div>'+
 					'</div>';
 	$("#"+day+"-td").append(template);		
-	$("#"+day+"-start-datepicker-"+index ).datepicker();
-	$("#"+day+"-end-datepicker-"+index ).datepicker();
-	$("#"+day+"-start-timepicker-"+index ).timepicker();
+	$("#"+day+"-start-datepicker-"+index ).datepicker(dateOptions);
+	$("#"+day+"-end-datepicker-"+index ).datepicker(dateOptions);
+	$("#"+day+"-start-timepicker-"+index ).timepicker(timeOptions);
 	if(index >= 1){
 		$("#"+day+"-td .remove_img").removeClass('visibility-off');
 		$("#"+day+"-td .remove_img").addClass('visibility-on');
