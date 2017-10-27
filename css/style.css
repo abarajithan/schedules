@@ -49,3 +49,12 @@ td {
 .remove_img img{
 	width: 20px;
 }
+.remove_img,.add_img{
+    cursor: pointer;
+}
+.visibility-off{
+    visibility: hidden;
+}
+.visibility-on{
+    visibility: visible;
+}
