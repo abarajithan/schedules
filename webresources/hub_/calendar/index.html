@@ -1,0 +1,194 @@
+<head>
+  <link rel="stylesheet" type="text/css" href="/webresources/hub_/calendar/css/font.css">
+  <link rel="stylesheet" type="text/css" href="/webresources/hub_/calendar/css/fullcalendar.css">
+  <link rel="stylesheet" type="text/css" href="/webresources/hub_/calendar/css/SylCalDef.css">
+  <link rel="stylesheet" type="text/css" href="/webresources/hub_/calendar/css/jquery_ui_1.8.23.css">
+  <link rel="stylesheet" type="text/css" href="/webresources/hub_/calendar/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="/webresources/hub_/calendar/css/context_menu.min.css">
+  <link rel="stylesheet" type="text/css" href="/webresources/hub_/calendar/css/style.css">
+  <link rel="stylesheet" type="text/css" href="/webresources/hub_/calendar/css/common.css">
+  <script type="text/javascript" src="/webresources/hub_/calendar/js/jquery_1.9.0.min.js"></script>
+  <script type="text/javascript" src="/webresources/hub_/calendar/js/widget.js"></script>
+</head>
+<div class="header-container">
+  <div id="dialog" style="display: none;">
+    <p class="dialog-msg"></p>
+  </div>
+  <div id="makeup" style="display: none;">
+    <ul class="makeup-lst"></ul>
+  </div>
+  <div class="padding-left-m display-inline-block">
+    <div class="loc-dropdown btn-group">
+        <button class="btn dropdown-toggle location-btn" data-toggle="dropdown">
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu"></ul>
+    </div>
+    <span> 
+      <i class="prevBtn icon-chevron-left"></i>
+      <span class="headerDate"></span>
+      <i class="nextBtn icon-chevron-right"></i>
+      <input type="hidden" id="datepicker">
+    </span>
+  </div>
+  <div class="delivery-type-container padding-left-m display-inline-block">
+    <div id="pi-btn">
+       <label>
+          <input class="dtBtn" type="checkbox"><span>PI</span>
+       </label>
+    </div>
+    <div id="gi-btn">
+       <label>
+          <input class="dtBtn" type="checkbox"><span>GRP</span>
+       </label>
+    </div>
+  </div>
+  <div class="margin-left-l display-inline-block">
+    <ul class="view-change-container">
+      <li>
+          <input type="radio" id="dayBtn" name="amount" checked=checked/>
+          <label class="dayView" for="dayBtn">Day</label>
+      </li>
+      <li>
+          <input type="radio" id="weekBtn" name="amount" />
+          <label class="wkView" for="weekBtn">Week</label>
+      </li>
+    </ul>
+  </div>
+  <div class="margin-left-xxl padding-left-xl display-inline-block">
+    <button class="btn font-20" id="addAppointment">
+      +
+    </button>
+    <button class="share-btn btn">
+      Share
+    </button>
+  </div>
+  <div class="margin-left-xl padding-left-l display-inline-block">
+    <button class="btn sof-btn">
+      SOF
+    </button>
+    <button class="ta-btn btn">
+      TA
+    </button>
+  </div>
+  <div class="padding-left-m float-right padding-right-m display-inline-block">
+    <i class="material-icons cursor float-right list-icon">list</i>
+    <i class="material-icons cursor float-right refresh-icon">autorenew</i>
+    <i class="material-icons cursor float-right info-icon">info</i>
+  </div>
+</div>
+<div class="sof-pane">
+	 <div class="sof-header">Student Overflow
+	 <span class="sof-close-icon cursor float-right">X</span>
+	 </div>
+</div>
+<div class="ta-pane">
+   <div class="ta-header">Teacher Availablity
+    <span class="ta-close-icon cursor float-right">X</span>
+   </div>
+</div>
+<div id='calendar'>
+	<div class="loading">
+		<img class="load-img" src="/webresources/hub_/calendar/images/loading.gif">
+	</div>
+</div>
+
+<!-- new appointment modal -->
+<div id="appointmentModal" style="display:none">
+    <form id="form" >
+
+        <div>
+          From
+          <input type="text" class="custom-datepicker from-datepicker-input" id="fromDate" tabindex="-1">
+            <img src="/webresources/hub_/calendar/images/up_arrow.png"  class="from-up-arrow" />
+        <img src="/webresources/hub_/calendar/images/down_arrow.png" class="from-down-arrow" />
+          <input type="text" class="custom-timepicker from-timepicker-input" id="fromTime" tabindex="-1">
+            <img src="/webresources/hub_/calendar/images/up_arrow.png"  class="up-arrow" />
+        <img src="/webresources/hub_/calendar/images/down_arrow.png" class="down-arrow" />
+        </div>
+        <div>
+          <span class=textAlign>To</span>
+          <input type="text" class="custom-datepicker to-datepicker-input" id="toDate" tabindex="-1">
+            <img src="/webresources/hub_/calendar/images/up_arrow.png"  class="to-up-arrow" />
+        <img src="/webresources/hub_/calendar/images/down_arrow.png" class="to-down-arrow" />
+          <input type="text" class="custom-timepicker to-timepicker-input" id="toTime" tabindex="-1">
+            <img src="/webresources/hub_/calendar/images/up_arrow.png"  class="up-arrow" />
+        <img src="/webresources/hub_/calendar/images/down_arrow.png" class="down-arrow" />
+        </div>
+        <div>Type
+          <select tabindex="-1" id="type">
+            <option value="Initial assessment">Initial assessment</option>
+          </select>
+        </div>
+        <div>
+          Capacity of appoinments in slot
+          <input class="custom-input" type="text"  id="capacity" tabindex="-1"/>
+        </div>
+        <div>Staff
+          <select tabindex="-1" id="staff">
+            <option value="Unassigned">Unassigned</option>
+          </select>
+        </div>
+         <div>Location
+          <input type="text" id="location" tabindex="-1" />
+        </div>
+        <div>Notes
+        <textarea rows="4" cols="50" id="notes" tabindex="-1"></textarea>
+        </div>
+        <button class="btn-modal" id="save" tabindex= "-1">Save</button>
+    </form>
+</div>
+<div id="excuseModal" style="display:none">
+	<table style="width: 100%">
+		<tr>
+			<td>Name</td>
+			<td id='studentNameofExcuse'></td>
+		</tr>
+		<tr>
+			<td>Date</td>
+			<td>
+				<input type="text" class="custom-datepicker excuse-datepicker-input" id="rescheduleDate" required tabindex="-1">
+			</td>
+		</tr>
+		<tr id="start-space">
+			<td>Start</td>
+			<td>
+        <div class="timing-dropdown btn-group">
+            <button class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+          </ul>
+        </div>
+			</td>
+		</tr>
+		<tr id="end-space">
+			<td>End</td>
+			<td>
+        <label class="custom-timepicker excuse-to-timepicker-input" id="excuseToTime" tabindex="-1"></label>
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>
+				<button class="btn btn-modal excuseSave" tabindex= "-1">Save</button>
+			</td>
+		</tr>
+	</table>
+	<p id='error_block'></p> 
+</div>
+<div id="weekmodal" style="display:none">
+    <div id='weekStudentsPlaceHolder'></div>
+</div>
+<script type="text/javascript" src="/webresources/hub_/calendar/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/webresources/hub_/calendar/js/moment.min.js"></script>
+<script type="text/javascript" src="/webresources/hub_/calendar/js/jquery_ui_1.9.2.min.js"></script>
+<script type="text/javascript" src="/webresources/hub_/calendar/js/jquery_timepicker_1.3.5.min.js"></script>
+<script type="text/javascript" src="../../../ClientGlobalContext.js.aspx" ></script>
+<script type="text/javascript" src="/webresources/hub_/calendar/js/fullcalendar.js"></script>
+<script type="text/javascript" src="/webresources/hub_/calendar/js/context_menu.min.js"></script>
+<script type="text/javascript" src="/webresources/hub_/calendar/js/context_menu_position.min.js"></script>
+<script type="text/javascript" src="/webresources/hub_/js/commonWebAPI.js"></script>    
+<script type="text/javascript" src="/webresources/hub_/calendar/js/calendarInterface.js"></script> 
+<script type="text/javascript" src="/webresources/hub_/calendar/js/instruction_view.js"></script>
+<script type="text/javascript" src="/webresources/hub_/calendar/js/plugin.js"></script>
