@@ -1,15 +1,64 @@
 
 (function(){
 var data = new Data();
-var locationId,serviceId,enrollmentId,enrollmentStartDate;
-var params = decodeURIComponent(window.location.search.slice(6)).split('&');
-if(params.length == 4){
-	locationId = params[0].split('=')[1];
-	serviceId = params[1].split('=')[1];
-	enrollmentId = params[2].split('=')[1];
-	enrollmentStartDate = params[3].split('=')[1];
+
+var enrollmentObject = data.getEnrollmentDetails();
+//enrollmentObject contains the below params
+//location,
+//service
+//enrollment
+//student
+//enrollmentStartDate
+//enrollmentEndDate
+//duration
+var disableddates = [];
+var timingsData = data.getTimings();
+timingsData = ( timingsData == null ) ? [] : timingsData;
+
+function convertMinsNumToTime(minsNum){
+  	if(minsNum){
+        // var mins_num = parseFloat(this, 10); // don't forget the second param
+        var hours   = Math.floor(minsNum / 60);
+        var minutes = Math.floor((minsNum - ((hours * 3600)) / 60));
+        var seconds = Math.floor((minsNum * 60) - (hours * 3600) - (minutes * 60));
+
+        // Appends 0 when unit is less than 10
+        if (hours   < 10) {hours   = "0"+hours;}
+        if (minutes < 10) {minutes = "0"+minutes;}
+        if (seconds < 10) {seconds = "0"+seconds;}
+        return hours+':'+minutes;
+  	}
 }
 
+function tConvert(time) {
+  	time = time.toString ().match (/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
+  	if (time.length > 1) { 
+        time = time.slice (1);  
+        time[5] = +time[0] < 12 ? ' AM' : ' PM'; 
+        time[0] = +time[0] % 12 || 12; 
+  	}	
+  	return time.join (''); 
+}
+
+var businessClosures = data.getBusinessClosure();
+if(businessClosures != null && businessClosures.length){
+	for (var i = 0; i < businessClosures.length; i++) {
+		var startDate = businessClosures[i]['hub_startdatetime@OData.Community.Display.V1.FormattedValue'];
+		var endDate =businessClosures[i]['hub_enddatetime@OData.Community.Display.V1.FormattedValue'];
+		startDate = startDate.split('/');
+		endDate = endDate.split('/');
+		var businessClosureStartDate = new Date(startDate[2],startDate[0]-1,startDate[1]);
+		var businessClosureEndDate = new Date(endDate[2],endDate[0]-1,endDate[1]);
+		if(businessClosureStartDate.getTime() == businessClosureEndDate.getTime()){
+			disableddates.push(moment(businessClosureStartDate).format('YYYY-MM-DD'));
+		}
+		else{
+			for (var j = businessClosureStartDate.getTime(); j <= businessClosureEndDate.getTime(); j+=(24*60*60*1000)) {
+				disableddates.push(moment(new Date(j)).format('YYYY-MM-DD'));
+			}
+		}
+	}
+}
 	var timeOptions = {
 			timeFormat: 'h:mm p',
 		    interval: 60,
@@ -20,11 +69,12 @@ if(params.length == 4){
 		    scrollbar: true
 		};
 	var dateOptions = {
-			minDate: new Date(enrollmentStartDate),
+			minDate: new Date(enrollmentObject.enrollmentStartDate),
 			changeMonth: true,
   			changeYear: true,
-  			onSelect: function(dateText) {
-		        getTimings(new Date(dateText))
+  			beforeShowDay : DisableSpecificDates,
+  			onSelect: function(dateText,e) {
+		        populateTimings(new Date(dateText),e.id.split("-")[0],e.id.split("-")[3])
 		    }
 		};
 	var day;
@@ -76,7 +126,12 @@ if(params.length == 4){
 							'<input type="text" id="'+day+'-end-datepicker-'+index+'">'+
 						'</div>'+
 						'<div class="picker">'+
-							'<input type="text" class="custom-timepicker" id="'+day+'-start-timepicker-'+index+'" tabindex="-1">'+
+							'<div id="'+day+'-start-timepicker-'+index+'" class="timing-dropdown btn-group">'+
+					            '<button id="'+day+'-start-timepicker-'+index+'-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">'+
+					            '<span class="caret"></span>'+
+					          '</button>'+
+					          '<ul class="dropdown-menu"></ul>'+
+					        '</div>'+
 						'</div>'+
 						'<div>'+
 							'<div class="end-time" id="end-time-'+day+'-'+index+'"></div>'+
@@ -105,7 +160,12 @@ if(params.length == 4){
 								'<input type="text" id="'+day+'-end-datepicker-'+index+'">'+
 							'</div>'+
 							'<div class="picker">'+
-								'<input type="text" class="custom-timepicker" id="'+day+'-start-timepicker-'+index+'" tabindex="-1">'+
+								'<div id="'+day+'-start-timepicker-'+index+'" class="timing-dropdown btn-group">'+
+					            	'<button id="'+day+'-start-timepicker-'+index+'-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">'+
+					            		'<span class="caret"></span>'+
+					          		'</button>'+
+					          		'<ul class="dropdown-menu"></ul>'+
+					        	'</div>'+
 							'</div>'+
 							'<div>'+
 								'<div class="end-time" id="end-time-'+day+'-'+index+'"></div>'+
@@ -158,35 +218,39 @@ if(params.length == 4){
 
 	$('#saveBtn').on('click',function(){
 		var saveObj = [];
-		var obj = {
-			"hub_days": "",
-			"hub_effectivestartdate" : "",
-			"hub_effectiveenddate" : "",
-			"hub_endtime":"",
-			"hub_starttime":"",
-			"hub_enrollementid": ""
-		};
 		for (var i = 0; i < dayArray.length; i++) {
 			var childrens = $("#"+dayArray[i].dayCode+"-td").children();
 			for (var j = 0; j < childrens.length; j++) {
-				
 				var startDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-datepicker-'+j).val();
-				if(startDate != '')
+				if(startDate != ''){
+					var obj = {};
+					obj["hub_enrollementid"]= enrollmentObject.enrollment;
 					startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
-				
-				var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
-				if(endDate != '')
-					endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
+					var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
+					if(endDate != '')
+						endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
 
-				var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j).val();
-				startTime = convertToMinutes(startTime);
-				
-				var obj = {
-					startDate : startDate,
-					startTime : startTime,
-					endDate : endDate,
-					endTime : $(childrens[j]).find('#end-time-'+dayArray[i].dayCode+'-'+j).text()
+					var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
+					startTime = convertToMinutes(startTime);
+
+					var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).text();
+					endTime = convertToMinutes(endTime);
+
+					obj['hub_effectivestartdate'] = startDate;
+					obj['hub_effectiveenddate'] = endDate;
+					obj['hub_starttime'] = startTime;
+					obj['hub_endtime'] = endTime;
+					obj['hub_days'] = dayArray[i].dayId;
+					saveObj.push(obj);
 				}
+			}
+		}
+		if(saveObj.length){
+			var response = data.saveSchedules(saveObj,enrollmentObject.enrollment,enrollmentObject.duration,enrollmentObject.enrollmentStartDate,enrollmentObject.enrollmentEndDate);
+			if(response){
+			}
+			else{
+				
 			}
 		}
 	});
@@ -205,10 +269,6 @@ if(params.length == 4){
                 return (hours * 60) + minutes;
             }
         }
-    }
-
-    function getTimings(date){
-    	var timingData = data.getTimings(locationId,serviceId,enrollmentId,moment(date).format('YYYY-MM-DD'),getDayValue(date));
     }
 
     function getDayValue(date) {
@@ -238,4 +298,50 @@ if(params.length == 4){
             }
         }
     }
+
+    function populateTimings(date,dayCode,index){
+    	var day = dayArray.filter(function(x){return x.dayCode == dayCode});
+    	var timingArry =[], timeHTML = [],ConvertedTimingArry = [];
+    	for (var i = 0; i < timingsData.length; i++) {
+		  	if(day[0].dayId == timingsData[i]['hub_days']){
+		    	for(var j= timingsData[i]['hub_starttime']; j < timingsData[i]['hub_endtime']; j = j+enrollmentObject.duration){
+		      		timingArry.push(j);
+		    	}
+		  	}
+		}
+		if(timingArry.length){
+		  	timingArry.sort(function(a, b){return a-b});
+		  	for(var i=0; i< timingArry.length; i++){
+		    	ConvertedTimingArry.push(tConvert(convertMinsNumToTime(timingArry[i])));
+		  	}
+		}
+		if(ConvertedTimingArry.length){
+		    for (var i = 0; i < ConvertedTimingArry.length; i++) {
+		        if (!i) {
+		            $("#"+dayCode+"-start-timepicker-"+index+"-btn").text(ConvertedTimingArry[i]);
+		            $("#"+dayCode+"-start-timepicker-"+index+"-btn").val(ConvertedTimingArry[i]);
+		            var startTime = ConvertedTimingArry[i];
+		            var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
+		            $("#end-time-"+dayCode+"-"+index).text(endTime);
+		        }
+		        timeHTML.push('<li><a tabindex="-1" value-id="' + ConvertedTimingArry[i] + '" href="javascript:void(0)">' + ConvertedTimingArry[i] + '</a></li>');
+		    }
+		    $("#"+dayCode+"-start-timepicker-"+index+" ul").html(timeHTML);
+		    $("#"+dayCode+"-start-timepicker-"+index+" .dropdown-menu").on('click', 'li a', function () {
+		      if ($("#"+dayCode+"-start-timepicker-"+index+"-btn").val() != $(this).attr('value-id')) {
+		          $("#"+dayCode+"-start-timepicker-"+index+"-btn").text($(this).text());
+		          $("#"+dayCode+"-start-timepicker-"+index+"-btn").val($(this).attr('value-id'));
+		          var startTime = $("#"+dayCode+"-start-timepicker-"+index+"-btn").val();
+		          var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
+		          $("#end-time-"+dayCode+"-"+index).text(endTime);
+		      }
+		    });
+		}
+    }
+
+	function DisableSpecificDates(date) {
+	    var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
+	    return [disableddates.indexOf(string) == -1];
+	}
+
 })();

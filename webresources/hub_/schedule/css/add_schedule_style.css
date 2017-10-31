@@ -30,6 +30,7 @@ td {
     border-radius: 4px;
     height: 20px;
     border-style: ridge;
+    width: 150px;
 }
 
 .ui-menu .ui-menu-item a {
