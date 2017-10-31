@@ -15,6 +15,16 @@ var disableddates = [];
 var timingsData = data.getTimings();
 timingsData = ( timingsData == null ) ? [] : timingsData;
 
+var arr = [];
+timingsData.map(function(x){
+	arr.push(x['hub_days']);
+	return x['hub_days']});
+
+var filteredArray = arr.filter(function(item, pos){
+  return arr.indexOf(item)== pos; 
+});
+
+
 function convertMinsNumToTime(minsNum){
   	if(minsNum){
         // var mins_num = parseFloat(this, 10); // don't forget the second param
@@ -115,6 +125,18 @@ if(businessClosures != null && businessClosures.length){
 			dayCode :"sun"
 		}
 	];
+
+	var unAvailableDays = [];
+	for (var i = 0; i < dayArray.length; i++) {
+		var index = filteredArray.map(function(x){return x;}).indexOf(dayArray[i].dayId);
+		if(index == -1){
+			unAvailableDays.push(dayArray[i].dayId)
+		}
+	}
+	for (var i = 0; i < unAvailableDays.length; i++) {
+		$('table tr:nth-child('+(unAvailableDays[i]+1)+')').addClass('disableRow');
+	}
+
 	var index = 0;
 	for (var i = 0; i < dayArray.length; i++) {
 		day = dayArray[i].dayCode;
@@ -250,7 +272,7 @@ if(businessClosures != null && businessClosures.length){
 			if(response){
 			}
 			else{
-				
+
 			}
 		}
 	});
