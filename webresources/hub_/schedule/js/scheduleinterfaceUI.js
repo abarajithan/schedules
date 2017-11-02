@@ -4,13 +4,15 @@ var data = new Data();
 
 var enrollmentObject = data.getEnrollmentDetails();
 //enrollmentObject contains the below params
-//location,
-//service
-//enrollment
-//student
-//enrollmentStartDate
-//enrollmentEndDate
-//duration
+//hub_location
+//hub_service
+//hub_enrollmentid
+//hub_student
+//hub_enrollmentstartdate
+//hub_enrollmentenddate
+//duration 
+//hub_committedsessions
+
 var disableddates = [];
 var timingsData = data.getTimings();
 timingsData = ( timingsData == null ) ? [] : timingsData;
@@ -69,17 +71,9 @@ if(businessClosures != null && businessClosures.length){
 		}
 	}
 }
-	var timeOptions = {
-			timeFormat: 'h:mm p',
-		    interval: 60,
-		    minTime: '8',
-		    maxTime: '20',
-		    dynamic: false,
-		    dropdown: true,
-		    scrollbar: true
-		};
+
 	var dateOptions = {
-			minDate: new Date(enrollmentObject.enrollmentStartDate),
+			minDate: new Date(enrollmentObject.hub_enrollmentstartdate),
 			changeMonth: true,
   			changeYear: true,
   			beforeShowDay : DisableSpecificDates,
@@ -168,7 +162,6 @@ if(businessClosures != null && businessClosures.length){
 			$("#"+day+"-td").append(template);		
 			$("#"+day+"-start-datepicker-"+index ).datepicker(dateOptions);
 			$("#"+day+"-end-datepicker-"+index ).datepicker(dateOptions);
-			$("#"+day+"-start-timepicker-"+index ).timepicker(timeOptions);
 	}
 
 	$('body').on('click', '.add_img img',function(){
@@ -199,7 +192,6 @@ if(businessClosures != null && businessClosures.length){
 		$("#"+day+"-td").append(template);		
 		$("#"+day+"-start-datepicker-"+index ).datepicker(dateOptions);
 		$("#"+day+"-end-datepicker-"+index ).datepicker(dateOptions);
-		$("#"+day+"-start-timepicker-"+index ).timepicker(timeOptions);
 		if(index >= 1){
 			$("#"+day+"-td .remove_img").removeClass('visibility-off');
 			$("#"+day+"-td .remove_img").addClass('visibility-on');
@@ -230,7 +222,6 @@ if(businessClosures != null && businessClosures.length){
 	    	}
 	    	$("#"+day+"-start-datepicker-"+i ).datepicker(dateOptions);
 			$("#"+day+"-end-datepicker-"+i ).datepicker(dateOptions);
-			$("#"+day+"-start-timepicker-"+i ).timepicker(timeOptions);
 	    }
 	    if(childrens.length == 1){
 			$("#"+day+"-td .remove_img").removeClass('visibility-on');
@@ -246,7 +237,7 @@ if(businessClosures != null && businessClosures.length){
 				var startDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-datepicker-'+j).val();
 				if(startDate != ''){
 					var obj = {};
-					obj["hub_enrollementid"]= enrollmentObject.enrollment;
+					obj["hub_enrollementid"]= enrollmentObject.hub_enrollmentid;
 					startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
 					var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
 					if(endDate != '')
@@ -268,7 +259,7 @@ if(businessClosures != null && businessClosures.length){
 			}
 		}
 		if(saveObj.length){
-			var response = data.saveSchedules(saveObj,enrollmentObject.enrollment,enrollmentObject.duration,enrollmentObject.enrollmentStartDate,enrollmentObject.enrollmentEndDate);
+			var response = data.saveSchedules(saveObj,enrollmentObject);
 			if(response){
 			}
 			else{
