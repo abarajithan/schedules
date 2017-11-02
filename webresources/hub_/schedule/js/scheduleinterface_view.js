@@ -166,7 +166,7 @@ function Data(){
         return businessClosure;
     }
 
-    this.saveSchedules = function(scheduleObject,enrollmentId,committedSessions,enrollmentStartDate,enrollmentEndDate){
+    this.saveSchedules = function(scheduleObject,enrollmentObj){
     	return true;
     }
 }
