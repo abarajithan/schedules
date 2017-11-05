@@ -15,7 +15,10 @@ var enrollmentObject = data.getEnrollmentDetails();
 
 var disableddates = [];
 var timingsData = data.getTimings();
+var existingData = data.getExistingSchedules();
+
 timingsData = ( timingsData == null ) ? [] : timingsData;
+existingData = ( existingData == null ) ? [] : existingData;
 
 var arr = [];
 timingsData.map(function(x){
@@ -131,37 +134,95 @@ if(businessClosures != null && businessClosures.length){
 		$('table tr:nth-child('+(unAvailableDays[i]+1)+')').addClass('disableRow');
 	}
 
-	var index = 0;
+	
 	for (var i = 0; i < dayArray.length; i++) {
 		day = dayArray[i].dayCode;
-		var template = '<div class="'+day+'-'+index+'">'+
-						'<div class="picker">'+
-							'<input type="text" id="'+day+'-start-datepicker-'+index+'">'+
-						'</div>'+
-						'<div class="picker">'+
-							'<input type="text" id="'+day+'-end-datepicker-'+index+'">'+
-						'</div>'+
-						'<div class="picker">'+
-							'<div id="'+day+'-start-timepicker-'+index+'" class="timing-dropdown btn-group">'+
-					            '<button id="'+day+'-start-timepicker-'+index+'-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">'+
-					            '<span class="caret"></span>'+
-					          '</button>'+
-					          '<ul class="dropdown-menu"></ul>'+
-					        '</div>'+
-						'</div>'+
-						'<div>'+
-							'<div class="end-time" id="end-time-'+day+'-'+index+'"></div>'+
-						'</div>'+
-						'<div class="remove_img visibility-off">'+
-							'<img x-id="'+day+'-'+index+'" day="'+day+'"id="remove-'+day+'-'+index+'" src="/webresources/hub_/schedule/images/close.png">'+
-						'</div>'+
-						'<div class="add_img">'+
-							'<img day="'+day+'"id="add_'+day+'_row" src="/webresources/hub_/schedule/images/add_circle.png">'+
-						'</div>'+
-					'</div>';
+
+		var filterByDay = existingData.filter(function(x){
+			return x.hub_days == dayArray[i].dayId;
+		});
+		var index = 0;
+		if(filterByDay.length > 0){
+			for (var j = 0; j < filterByDay.length; j++) {
+				index = j;
+				var startDate = moment(moment(filterByDay[j]['hub_effectivestartdate']).format('YYYY-MM-DD')).format('MM/DD/YYYY');
+				var endDate = null;
+				if(filterByDay[j]['hub_effectiveenddate'] != undefined && filterByDay[j]['hub_effectiveenddate'] != ""){
+					endDate = moment(moment(filterByDay[j]['hub_effectiveenddate']).format('YYYY-MM-DD')).format('MM/DD/YYYY');
+				}
+				var startTime = tConvert(convertMinsNumToTime(filterByDay[j]["hub_starttime"]));
+				var endTime = tConvert(convertMinsNumToTime(filterByDay[j]["hub_endtime"]));
+
+				var template = '<div id="'+filterByDay[j]['hub_timingsid']+'" class="'+day+'-'+index+'">'+
+								'<div class="picker">'+
+									'<input type="text" value="'+startDate+'" id="'+day+'-start-datepicker-'+index+'">'+
+								'</div>'+
+								'<div class="picker">'+
+									'<input type="text" id="'+day+'-end-datepicker-'+index+'">'+
+								'</div>'+
+								'<div class="picker">'+
+									'<div id="'+day+'-start-timepicker-'+index+'" class="timing-dropdown btn-group">'+
+							            '<button value="'+startTime+'" id="'+day+'-start-timepicker-'+index+'-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">'+
+							            '<span class="caret"></span>'+
+							          '</button>'+
+							          '<ul class="dropdown-menu"></ul>'+
+							        '</div>'+
+								'</div>'+
+								'<div>'+
+									'<div class="end-time">'+
+										'<button id="end-time-'+day+'-'+index+'" class="btn" disabled></button>' +
+									'</div>'+
+								'</div>'+
+								'<div class="remove_img existingRecord visibility-off">'+
+									'<img x-id="'+day+'-'+index+'" day="'+day+'"id="remove-'+day+'-'+index+'" src="/webresources/hub_/schedule/images/close.png">'+
+								'</div>';
+				if(!j){
+					template+= 	'<div class="add_img">'+
+									'<img day="'+day+'"id="add_'+day+'_row" src="/webresources/hub_/schedule/images/add_circle.png">'+
+								'</div>'+
+							'</div>';
+				}				
+				$("#"+day+"-td").append(template);		
+				$("#"+day+"-start-datepicker-"+index ).datepicker(dateOptions);
+				$("#"+day+"-end-datepicker-"+index ).datepicker(dateOptions);
+				if(endDate != null){
+					$("#"+day+"-end-datepicker-"+index).datepicker( "setDate", endDate );
+				}
+				populateTimings(new Date(filterByDay[j]['hub_effectivestartdate']),day,index);
+			}
+		}
+		else{
+			var template = '<div class="'+day+'-'+index+'">'+
+							'<div class="picker">'+
+								'<input type="text" id="'+day+'-start-datepicker-'+index+'">'+
+							'</div>'+
+							'<div class="picker">'+
+								'<input type="text" id="'+day+'-end-datepicker-'+index+'">'+
+							'</div>'+
+							'<div class="picker">'+
+								'<div id="'+day+'-start-timepicker-'+index+'" class="timing-dropdown btn-group">'+
+						            '<button id="'+day+'-start-timepicker-'+index+'-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">'+
+						            '<span class="caret"></span>'+
+						          '</button>'+
+						          '<ul class="dropdown-menu"></ul>'+
+						        '</div>'+
+							'</div>'+
+							'<div>'+
+								'<div class="end-time" >'+
+									'<button id="end-time-'+day+'-'+index+'" class="btn" disabled></button>' +
+								'</div>'+
+							'</div>'+
+							'<div class="remove_img visibility-off">'+
+								'<img x-id="'+day+'-'+index+'" day="'+day+'"id="remove-'+day+'-'+index+'" src="/webresources/hub_/schedule/images/close.png">'+
+							'</div>'+
+							'<div class="add_img">'+
+								'<img day="'+day+'"id="add_'+day+'_row" src="/webresources/hub_/schedule/images/add_circle.png">'+
+							'</div>'+
+						'</div>';
 			$("#"+day+"-td").append(template);		
 			$("#"+day+"-start-datepicker-"+index ).datepicker(dateOptions);
 			$("#"+day+"-end-datepicker-"+index ).datepicker(dateOptions);
+		}
 	}
 
 	$('body').on('click', '.add_img img',function(){
@@ -183,7 +244,9 @@ if(businessClosures != null && businessClosures.length){
 					        	'</div>'+
 							'</div>'+
 							'<div>'+
-								'<div class="end-time" id="end-time-'+day+'-'+index+'"></div>'+
+								'<div class="end-time" >'+
+									'<button id="end-time-'+day+'-'+index+'" class="btn" disabled></button>'+
+								'</div>'+
 							'</div>'+
 							'<div class="remove_img visibility-off">'+
 								'<img x-id="'+day+'-'+index+'" day="'+day+'"id="remove-'+day+'-'+index+'" src="/webresources/hub_/schedule/images/close.png">'+
@@ -193,8 +256,12 @@ if(businessClosures != null && businessClosures.length){
 		$("#"+day+"-start-datepicker-"+index ).datepicker(dateOptions);
 		$("#"+day+"-end-datepicker-"+index ).datepicker(dateOptions);
 		if(index >= 1){
-			$("#"+day+"-td .remove_img").removeClass('visibility-off');
-			$("#"+day+"-td .remove_img").addClass('visibility-on');
+			$("#"+day+"-td .remove_img").each(function(){
+				if(!$(this).hasClass('existingRecord')){
+					$(this).removeClass('visibility-off');
+					$(this).addClass('visibility-on');
+				}
+			});
 		}
 	});
 
@@ -207,7 +274,6 @@ if(businessClosures != null && businessClosures.length){
 	    for (var i = parseInt(index); i < childrens.length; i++) {
 	    	$("#"+day+"-start-datepicker-"+(i+1) ).datepicker("destroy");
 			$("#"+day+"-end-datepicker-"+(i+1) ).datepicker("destroy");
-			$("#"+day+"-start-timepicker-"+(i+1) ).timepicker("destroy");
 	    	$(childrens[i]).attr('class',day+'-'+i);
 	    	$(childrens[i]).find('#'+day+'-start-datepicker-'+(i+1)).attr('id',day+'-start-datepicker-'+i);
 	    	$(childrens[i]).find('#'+day+'-end-datepicker-'+(i+1)).attr('id',day+'-end-datepicker-'+i);
@@ -246,7 +312,7 @@ if(businessClosures != null && businessClosures.length){
 					var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
 					startTime = convertToMinutes(startTime);
 
-					var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).text();
+					var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).val();
 					endTime = convertToMinutes(endTime);
 
 					obj['hub_effectivestartdate'] = startDate;
@@ -254,18 +320,26 @@ if(businessClosures != null && businessClosures.length){
 					obj['hub_starttime'] = startTime;
 					obj['hub_endtime'] = endTime;
 					obj['hub_days'] = dayArray[i].dayId;
+					if($(childrens[j]).attr('id') != ''){
+						obj['hub_timingsid'] = $(childrens[j]).attr('id');
+					}
 					saveObj.push(obj);
 				}
 			}
 		}
 		if(saveObj.length){
 			var response = data.saveSchedules(saveObj,enrollmentObject);
-			if(response){
+			if(typeof(response) == 'boolean' && response){
+				window.close();
 			}
 			else{
-
+				$("#error").text(response);
 			}
 		}
+	});
+
+	$('#closeBtn').on('click',function(){
+		window.close();
 	});
 
 	function convertToMinutes(timeString) {
@@ -335,6 +409,7 @@ if(businessClosures != null && businessClosures.length){
 		            $("#"+dayCode+"-start-timepicker-"+index+"-btn").val(ConvertedTimingArry[i]);
 		            var startTime = ConvertedTimingArry[i];
 		            var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
+		            $("#end-time-"+dayCode+"-"+index).val(endTime);
 		            $("#end-time-"+dayCode+"-"+index).text(endTime);
 		        }
 		        timeHTML.push('<li><a tabindex="-1" value-id="' + ConvertedTimingArry[i] + '" href="javascript:void(0)">' + ConvertedTimingArry[i] + '</a></li>');
@@ -346,6 +421,7 @@ if(businessClosures != null && businessClosures.length){
 		          $("#"+dayCode+"-start-timepicker-"+index+"-btn").val($(this).attr('value-id'));
 		          var startTime = $("#"+dayCode+"-start-timepicker-"+index+"-btn").val();
 		          var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
+		          $("#end-time-"+dayCode+"-"+index).val(endTime);
 		          $("#end-time-"+dayCode+"-"+index).text(endTime);
 		      }
 		    });

@@ -155,6 +155,45 @@ var enrollmentDetails = {
    "duration":60
 };
 
+var existingSchedules = [
+   {
+      "@odata.etag":"W/\"4186948\"",
+      "hub_term@OData.Community.Display.V1.FormattedValue":"1",
+      "hub_term":1,
+      "hub_starttime@OData.Community.Display.V1.FormattedValue":"4:00 PM",
+      "hub_starttime":960,
+      "hub_days@OData.Community.Display.V1.FormattedValue":"Thursday",
+      "hub_days":4,
+      "hub_endtime@OData.Community.Display.V1.FormattedValue":"5:00 PM",
+      "hub_endtime":1020,
+      "hub_timingsid":"a64a3f3d-57af-e711-80fb-c4346bad526c",
+      "hub_effectivestartdate@OData.Community.Display.V1.FormattedValue":"10/12/2017",
+      "hub_effectivestartdate":"2017-10-12",
+      "_hub_enrollment_value@OData.Community.Display.V1.FormattedValue":"Nagendra K - Homework Help for summer",
+      "_hub_enrollment_value@Microsoft.Dynamics.CRM.associatednavigationproperty":"hub_enrollment",
+      "_hub_enrollment_value@Microsoft.Dynamics.CRM.lookuplogicalname":"hub_enrollment",
+      "_hub_enrollment_value":"36b86314-57af-e711-80fb-c4346bad526c"
+   },
+   {
+      "@odata.etag":"W/\"4540764\"",
+      "hub_term@OData.Community.Display.V1.FormattedValue":"1",
+      "hub_term":1,
+      "hub_starttime@OData.Community.Display.V1.FormattedValue":"9:00 AM",
+      "hub_starttime":540,
+      "hub_days@OData.Community.Display.V1.FormattedValue":"Thursday",
+      "hub_days":4,
+      "hub_endtime@OData.Community.Display.V1.FormattedValue":"10:00 AM",
+      "hub_endtime":600,
+      "hub_timingsid":"a7b89251-23c2-e711-8100-c4346bacfbbc",
+      "hub_effectivestartdate@OData.Community.Display.V1.FormattedValue":"10/12/2017",
+      "hub_effectivestartdate":"2017-10-12",
+      "_hub_enrollment_value@OData.Community.Display.V1.FormattedValue":"Nagendra K - Homework Help for summer",
+      "_hub_enrollment_value@Microsoft.Dynamics.CRM.associatednavigationproperty":"hub_enrollment",
+      "_hub_enrollment_value@Microsoft.Dynamics.CRM.lookuplogicalname":"hub_enrollment",
+      "_hub_enrollment_value":"36b86314-57af-e711-80fb-c4346bad526c"
+   }
+];
+
 function Data(){
 	this.getEnrollmentDetails = function(){
         return enrollmentDetails;
@@ -162,11 +201,15 @@ function Data(){
 	this.getTimings = function(){
         return timings;
 	}
-    this.getBusinessClosure = function(){
+   this.getBusinessClosure = function(){
         return businessClosure;
-    }
+   }
 
-    this.saveSchedules = function(scheduleObject,enrollmentObj){
+   this.saveSchedules = function(scheduleObject,enrollmentObj){
     	return true;
-    }
+   }
+
+   this.getExistingSchedules = function(){
+      return existingSchedules;
+   }
 }
