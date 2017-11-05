@@ -342,6 +342,10 @@ if(businessClosures != null && businessClosures.length){
 				$("#error").text(response);
 			}
 		}
+		else{
+			$('.loading').hide();
+			$("#error").text("Please add some data");
+		}
 	});
 
 	$('#closeBtn').off('click').on('click',function(){
