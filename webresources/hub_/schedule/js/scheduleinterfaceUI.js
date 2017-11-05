@@ -81,7 +81,9 @@ if(businessClosures != null && businessClosures.length){
   			changeYear: true,
   			beforeShowDay : DisableSpecificDates,
   			onSelect: function(dateText,e) {
-		        populateTimings(new Date(dateText),e.id.split("-")[0],e.id.split("-")[3])
+  				if($(e)[0].id.indexOf('start-datepicker') != -1){	
+		        	populateTimings(new Date(dateText),e.id.split("-")[0],e.id.split("-")[3])
+  				}
 		    }
 		};
 	var day;
@@ -295,8 +297,10 @@ if(businessClosures != null && businessClosures.length){
 		}
 	});
 
-	$('#saveBtn').on('click',function(){
+	$('#saveBtn').off('click').on('click',function(){
 		var saveObj = [];
+		$('.loading').css('height',window.outerHeight + "px");
+		$('.loading').show();
 		for (var i = 0; i < dayArray.length; i++) {
 			var childrens = $("#"+dayArray[i].dayCode+"-td").children();
 			for (var j = 0; j < childrens.length; j++) {
@@ -330,15 +334,17 @@ if(businessClosures != null && businessClosures.length){
 		if(saveObj.length){
 			var response = data.saveSchedules(saveObj,enrollmentObject);
 			if(typeof(response) == 'boolean' && response){
+				$('.loading').hide();
 				window.close();
 			}
 			else{
+				$('.loading').hide();
 				$("#error").text(response);
 			}
 		}
 	});
 
-	$('#closeBtn').on('click',function(){
+	$('#closeBtn').off('click').on('click',function(){
 		window.close();
 	});
 
