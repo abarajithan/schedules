@@ -82,7 +82,7 @@ if(businessClosures != null && businessClosures.length){
   			beforeShowDay : DisableSpecificDates,
   			onSelect: function(dateText,e) {
   				if($(e)[0].id.indexOf('start-datepicker') != -1){	
-		        	populateTimings(new Date(dateText),e.id.split("-")[0],e.id.split("-")[3])
+		        	populateTimings(new Date(dateText),e.id.split("-")[0],e.id.split("-")[3],true)
   				}
 		    }
 		};
@@ -157,22 +157,22 @@ if(businessClosures != null && businessClosures.length){
 
 				var template = '<div id="'+filterByDay[j]['hub_timingsid']+'" class="'+day+'-'+index+'">'+
 								'<div class="picker">'+
-									'<input type="text" value="'+startDate+'" id="'+day+'-start-datepicker-'+index+'">'+
+									'<input type="text" disabled value="'+startDate+'" id="'+day+'-start-datepicker-'+index+'">'+
 								'</div>'+
 								'<div class="picker">'+
 									'<input type="text" id="'+day+'-end-datepicker-'+index+'">'+
 								'</div>'+
 								'<div class="picker">'+
 									'<div id="'+day+'-start-timepicker-'+index+'" class="timing-dropdown btn-group">'+
-							            '<button value="'+startTime+'" id="'+day+'-start-timepicker-'+index+'-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">'+
-							            '<span class="caret"></span>'+
+							            '<button disabled value="'+startTime+'" id="'+day+'-start-timepicker-'+index+'-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">'+
+							            startTime+
 							          '</button>'+
 							          '<ul class="dropdown-menu"></ul>'+
 							        '</div>'+
 								'</div>'+
 								'<div>'+
 									'<div class="end-time">'+
-										'<button id="end-time-'+day+'-'+index+'" class="btn" disabled></button>' +
+										'<button id="end-time-'+day+'-'+index+'" class="btn" disabled>'+endTime+'</button>' +
 									'</div>'+
 								'</div>'+
 								'<div class="remove_img existingRecord visibility-off">'+
@@ -190,7 +190,7 @@ if(businessClosures != null && businessClosures.length){
 				if(endDate != null){
 					$("#"+day+"-end-datepicker-"+index).datepicker( "setDate", endDate );
 				}
-				populateTimings(new Date(filterByDay[j]['hub_effectivestartdate']),day,index);
+				populateTimings(new Date(filterByDay[j]['hub_effectivestartdate']),day,index,false);
 			}
 		}
 		else{
@@ -314,16 +314,22 @@ if(businessClosures != null && businessClosures.length){
 					if(endDate != ''){
 						endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
 						if(new Date(startDate).getTime() > new Date(endDate).getTime()){
-							$("#error").text("One of the selected Start Date greater than the End Date.");
+							prompt("One of the selected Start Date is greater than the End Date.","Error");
 							allowSave = false;
 							break;
 						}
 					}
 
 					var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
+					if(startTime == ""){
+						startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').text();
+					}
 					startTime = convertToMinutes(startTime);
 
 					var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).val();
+					if(endTime == ""){
+						endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).text();
+					}
 					endTime = convertToMinutes(endTime);
 
 					obj['hub_effectivestartdate'] = startDate;
@@ -341,14 +347,14 @@ if(businessClosures != null && businessClosures.length){
 		if(saveObj.length && allowSave){
 			var response = data.saveSchedules(saveObj,enrollmentObject);
 			if(typeof(response) == 'boolean' && response){
-				window.close();
+				prompt('Schedules are saved Successfully.',"Success")
 			}
 			else{
-				$("#error").text(response);
+				prompt(response,"Error");
 			}
 		}
 		else if(saveObj.length == 0){
-			$("#error").text("Please add some data");
+			prompt("Please add some data","Error");
 		}
 		$('.loading').hide();
 	});
@@ -401,7 +407,7 @@ if(businessClosures != null && businessClosures.length){
         }
     }
 
-    function populateTimings(date,dayCode,index){
+    function populateTimings(date,dayCode,index,setValue){
     	var day = dayArray.filter(function(x){return x.dayCode == dayCode});
     	var timingArry =[], timeHTML = [],ConvertedTimingArry = [];
     	for (var i = 0; i < timingsData.length; i++) {
@@ -419,14 +425,14 @@ if(businessClosures != null && businessClosures.length){
 		}
 		if(ConvertedTimingArry.length){
 		    for (var i = 0; i < ConvertedTimingArry.length; i++) {
-		        if (!i) {
+		        if (!i && setValue) {
 		            $("#"+dayCode+"-start-timepicker-"+index+"-btn").text(ConvertedTimingArry[i]);
 		            $("#"+dayCode+"-start-timepicker-"+index+"-btn").val(ConvertedTimingArry[i]);
 		            var startTime = ConvertedTimingArry[i];
 		            var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
-		            $("#end-time-"+dayCode+"-"+index).val(endTime);
-		            $("#end-time-"+dayCode+"-"+index).text(endTime);
-		        }
+	           		$("#end-time-"+dayCode+"-"+index).val(endTime);
+	            	$("#end-time-"+dayCode+"-"+index).text(endTime);
+	        	}
 		        timeHTML.push('<li><a tabindex="-1" value-id="' + ConvertedTimingArry[i] + '" href="javascript:void(0)">' + ConvertedTimingArry[i] + '</a></li>');
 		    }
 		    $("#"+dayCode+"-start-timepicker-"+index+" ul").html(timeHTML);
@@ -447,5 +453,35 @@ if(businessClosures != null && businessClosures.length){
 	    var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
 	    return [disableddates.indexOf(string) == -1];
 	}
+
+	function prompt(message,title) {
+        $("#dialog > .dialog-msg").text(message);
+        $("#dialog").dialog({
+        	title: title,
+            resizable: false,
+            height: "auto",
+            width: 350,
+            modal: true,
+            show: {
+                effect: 'slide',
+                complete: function() {
+                    $(".loading").hide();
+                }
+            },
+            buttons: {
+                Close: function () {
+                	if(title == 'Success'){
+                		window.close();
+                	}
+                    $(this).dialog("close");
+                }
+            },
+            close: function( event, ui ) {
+            	if(title == 'Success'){
+            		window.close();
+            	}
+            }
+        });
+    }
 
 })();
