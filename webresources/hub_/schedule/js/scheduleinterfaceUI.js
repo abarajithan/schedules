@@ -301,6 +301,7 @@ if(businessClosures != null && businessClosures.length){
 		var saveObj = [];
 		$('.loading').css('height',window.outerHeight + "px");
 		$('.loading').show();
+		var allowSave = true;
 		for (var i = 0; i < dayArray.length; i++) {
 			var childrens = $("#"+dayArray[i].dayCode+"-td").children();
 			for (var j = 0; j < childrens.length; j++) {
@@ -310,8 +311,14 @@ if(businessClosures != null && businessClosures.length){
 					obj["hub_enrollementid"]= enrollmentObject.hub_enrollmentid;
 					startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
 					var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
-					if(endDate != '')
+					if(endDate != ''){
 						endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
+						if(new Date(startDate).getTime() > new Date(endDate).getTime()){
+							$("#error").text("One of the selected Start Date greater than the End Date.");
+							allowSave = false;
+							break;
+						}
+					}
 
 					var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
 					startTime = convertToMinutes(startTime);
@@ -331,21 +338,19 @@ if(businessClosures != null && businessClosures.length){
 				}
 			}
 		}
-		if(saveObj.length){
+		if(saveObj.length && allowSave){
 			var response = data.saveSchedules(saveObj,enrollmentObject);
 			if(typeof(response) == 'boolean' && response){
-				$('.loading').hide();
 				window.close();
 			}
 			else{
-				$('.loading').hide();
 				$("#error").text(response);
 			}
 		}
-		else{
-			$('.loading').hide();
+		else if(saveObj.length == 0){
 			$("#error").text("Please add some data");
 		}
+		$('.loading').hide();
 	});
 
 	$('#closeBtn').off('click').on('click',function(){
