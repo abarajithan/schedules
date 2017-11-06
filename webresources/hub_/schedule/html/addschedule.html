@@ -14,68 +14,72 @@
 	<header>
 		<span>Add Master Schedule</span>
 	</header>
-	<div id="dialog" style="display: none;">
-	    <p class="dialog-msg"></p>
+	<div class='data-container'>
+		<div id="dialog" style="display: none;">
+		    <p class="dialog-msg"></p>
+		</div>
+		<div class="loading">
+			<img class="load-img" src="/webresources/hub_/calendar/images/loading.gif">
+		</div>
+		<table>
+			<tr class='table-header'>
+				<td style="width: 100px">Days</td>
+				<td class='display-inline'>
+					<div class='picker'>
+						Start Date
+					</div>
+					<div class='picker'>
+						End Date
+					</div>
+					<div class='picker'>
+						Start Time
+					</div>
+					<div>
+						End Time
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>Monday</td>
+				<td id="mon-td" class='display-inline'>
+				</td>
+			</tr>
+			<tr>
+				<td>Tuesday</td>
+				<td id="tue-td" class='display-inline'>
+				</td>
+			</tr>
+			<tr>
+				<td>Wednesday</td>
+				<td id="wed-td" class='display-inline'>
+				</td>
+			</tr>
+			<tr>
+				<td>Thursday</td>
+				<td id="thu-td" class='display-inline'>
+				</td>
+			</tr>
+			<tr>
+				<td>Friday</td>
+				<td id="fri-td" class='display-inline'>
+				</td>
+			</tr>
+			<tr>
+				<td>Saturday</td>
+				<td id="sat-td" class='display-inline'>
+				</td>
+			</tr>
+			<tr>
+				<td>Sunday</td>
+				<td id="sun-td" class='display-inline'>
+				</td>
+			</tr>
+		</table>
+		<div class="button-container">
+			<button id='saveBtn'>Save</button>
+			<button id='closeBtn'>Close</button>
+		</div>
 	</div>
-	<div class="loading">
-		<img class="load-img" src="/webresources/hub_/calendar/images/loading.gif">
-	</div>
-	<table>
-		<tr class='table-header'>
-			<td style="width: 100px">Days</td>
-			<td class='display-inline'>
-				<div class='picker'>
-					Start Date
-				</div>
-				<div class='picker'>
-					End Date
-				</div>
-				<div class='picker'>
-					Start Time
-				</div>
-				<div>
-					End Time
-				</div>
-			</td>
-		</tr>
-		<tr>
-			<td>Monday</td>
-			<td id="mon-td" class='display-inline'>
-			</td>
-		</tr>
-		<tr>
-			<td>Tuesday</td>
-			<td id="tue-td" class='display-inline'>
-			</td>
-		</tr>
-		<tr>
-			<td>Wednesday</td>
-			<td id="wed-td" class='display-inline'>
-			</td>
-		</tr>
-		<tr>
-			<td>Thursday</td>
-			<td id="thu-td" class='display-inline'>
-			</td>
-		</tr>
-		<tr>
-			<td>Friday</td>
-			<td id="fri-td" class='display-inline'>
-			</td>
-		</tr>
-		<tr>
-			<td>Saturday</td>
-			<td id="sat-td" class='display-inline'>
-			</td>
-		</tr>
-		<tr>
-			<td>Sunday</td>
-			<td id="sun-td" class='display-inline'>
-			</td>
-		</tr>
-	</table>
-	<button id='saveBtn'>Save</button>
-	<button id='closeBtn'>Close</button>
 	<script type="text/javascript" src="../../../ClientGlobalContext.js.aspx" ></script>
 	<script type="text/javascript" src="/webresources/hub_/js/commonWebAPI.js"></script> 
 	<script type="text/javascript" src="/webresources/hub_/schedule/js/scheduleinterface.js"></script>
