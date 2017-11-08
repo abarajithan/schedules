@@ -301,62 +301,69 @@ if(businessClosures != null && businessClosures.length){
 		var saveObj = [];
 		$('.loading').css('height',window.outerHeight + "px");
 		$('.loading').show();
-		var allowSave = true;
-		for (var i = 0; i < dayArray.length; i++) {
-			var childrens = $("#"+dayArray[i].dayCode+"-td").children();
-			for (var j = 0; j < childrens.length; j++) {
-				var startDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-datepicker-'+j).val();
-				if(startDate != ''){
-					var obj = {};
-					obj["hub_enrollementid"]= enrollmentObject.hub_enrollmentid;
-					startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
-					var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
-					if(endDate != ''){
-						endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
-						if(new Date(startDate).getTime() > new Date(endDate).getTime()){
-							prompt("One of the selected Start Date is greater than the End Date.","Error");
-							allowSave = false;
-							break;
+		setTimeout(function(){
+			var allowSave = true;
+			for (var i = 0; i < dayArray.length; i++) {
+				var childrens = $("#"+dayArray[i].dayCode+"-td").children();
+				for (var j = 0; j < childrens.length; j++) {
+					var startDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-datepicker-'+j).val();
+					if(startDate != ''){
+						var obj = {};
+						obj["hub_enrollementid"]= enrollmentObject.hub_enrollmentid;
+						startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
+						var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
+						if(endDate != ''){
+							endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
+							if(new Date(startDate).getTime() > new Date(endDate).getTime()){
+								prompt("One of the selected Start Date is greater than the End Date.","Error");
+								allowSave = false;
+								break;
+							}
 						}
-					}
 
-					var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
-					if(startTime == ""){
-						startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').text();
-					}
-					startTime = convertToMinutes(startTime);
+						var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
+						if(startTime == ""){
+							startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').text();
+						}
+						startTime = convertToMinutes(startTime);
 
-					var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).val();
-					if(endTime == ""){
-						endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).text();
-					}
-					endTime = convertToMinutes(endTime);
+						var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).val();
+						if(endTime == ""){
+							endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).text();
+						}
+						endTime = convertToMinutes(endTime);
 
-					obj['hub_effectivestartdate'] = startDate;
-					obj['hub_effectiveenddate'] = endDate;
-					obj['hub_starttime'] = startTime;
-					obj['hub_endtime'] = endTime;
-					obj['hub_days'] = dayArray[i].dayId;
-					if($(childrens[j]).attr('id') != ''){
-						obj['hub_timingsid'] = $(childrens[j]).attr('id');
+						obj['hub_effectivestartdate'] = startDate;
+						obj['hub_effectiveenddate'] = endDate;
+						obj['hub_starttime'] = startTime;
+						obj['hub_endtime'] = endTime;
+						obj['hub_days'] = dayArray[i].dayId;
+						if($(childrens[j]).attr('id') != ''){
+							obj['hub_timingsid'] = $(childrens[j]).attr('id');
+						}
+						saveObj.push(obj);
 					}
-					saveObj.push(obj);
 				}
 			}
-		}
-		if(saveObj.length && allowSave){
-			var response = data.saveSchedules(saveObj,enrollmentObject);
-			if(typeof(response) == 'boolean' && response){
-				prompt('Schedules are saved Successfully.',"Success")
+			if(saveObj.length && allowSave){
+				var response = data.saveSchedules(saveObj,enrollmentObject);
+				if(typeof(response) == 'boolean' && response){
+					prompt('Schedules are saved Successfully.',"Success")
+					$('.loading').hide();
+				}
+				else{
+					prompt(response,"Error");
+					$('.loading').hide();
+				}
+			}
+			else if(saveObj.length == 0){
+				prompt("Please add some data","Error");
+				$('.loading').hide();
 			}
 			else{
-				prompt(response,"Error");
+				$('.loading').hide();
 			}
-		}
-		else if(saveObj.length == 0){
-			prompt("Please add some data","Error");
-		}
-		$('.loading').hide();
+		},50);
 	});
 
 	$('#closeBtn').off('click').on('click',function(){
