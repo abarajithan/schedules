@@ -81,6 +81,8 @@ if(businessClosures != null && businessClosures.length){
   			changeYear: true,
   			beforeShowDay : DisableSpecificDates,
   			onSelect: function(dateText,e) {
+  				$(this).removeAttr('style');
+  				$(this).removeAttr('data-original-title');
   				if($(e)[0].id.indexOf('start-datepicker') != -1){	
 		        	populateTimings(new Date(dateText),e.id.split("-")[0],e.id.split("-")[3],true)
   				}
@@ -303,15 +305,56 @@ if(businessClosures != null && businessClosures.length){
 		$('.loading').show();
 		setTimeout(function(){
 			var allowSave = true;
+			var errorArry = [];
 			for (var i = 0; i < dayArray.length; i++) {
 				var childrens = $("#"+dayArray[i].dayCode+"-td").children();
+				var dateArry = [];
 				for (var j = 0; j < childrens.length; j++) {
 					var startDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-datepicker-'+j).val();
+					var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
+					var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
+					var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).val();
+					var isDisabled = $('#'+dayArray[i].dayCode+'-start-datepicker-'+j).prop('disabled');
+					if(startDate.length){
+						if(childrens.length > 1){
+							var dateObj	= {
+								startDate:startDate,
+								startTime:startTime,
+								endDate:endDate,
+								endTime:endTime	
+							};
+							if(j>0){
+								var res = validateDateOverlap(dateObj, dateArry);
+								if(res){
+									if(!isDisabled){
+										errorArry.push('#'+dayArray[i].dayCode+'-start-datepicker-'+j);
+										errorArry.push('#'+dayArray[i].dayCode+'-end-datepicker-'+j);
+									}
+								}
+							}
+						}
+						dateArry.push({
+							startDate:startDate,
+							startTime:startTime,
+							endDate:endDate,
+							endTime:endTime	
+						}); 
+					}else{
+						if(childrens.length > 1){
+							var disableRow = $('#'+dayArray[i].dayCode+'-start-datepicker-'+j).parents("tr").hasClass("disableRow")
+							if(!isDisabled && !disableRow){
+								errorArry.push('#'+dayArray[i].dayCode+'-start-datepicker-'+j);
+								errorArry.push('#'+dayArray[i].dayCode+'-end-datepicker-'+j);
+							}
+						}
+					}					
+
+					// var startDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-datepicker-'+j).val();
 					if(startDate != ''){
 						var obj = {};
 						obj["hub_enrollementid"]= enrollmentObject.hub_enrollmentid;
 						startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
-						var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
+						// var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
 						if(endDate != ''){
 							endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
 							if(new Date(startDate).getTime() > new Date(endDate).getTime()){
@@ -321,13 +364,13 @@ if(businessClosures != null && businessClosures.length){
 							}
 						}
 
-						var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
+						// var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
 						if(startTime == ""){
 							startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').text();
 						}
 						startTime = convertToMinutes(startTime);
 
-						var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).val();
+						// var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).val();
 						if(endTime == ""){
 							endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).text();
 						}
@@ -345,30 +388,129 @@ if(businessClosures != null && businessClosures.length){
 					}
 				}
 			}
-			if(saveObj.length && allowSave){
-				var response = data.saveSchedules(saveObj,enrollmentObject);
-				if(typeof(response) == 'boolean' && response){
-					prompt('Schedules are saved Successfully.',"Success")
+
+			if(errorArry.length){
+				populateErrorField(errorArry);
+				$('.loading').hide();
+			}else{
+				$(".hasDatepicker").removeAttr("data-original-title");
+				$(".hasDatepicker").removeAttr("title");
+				$(".hasDatepicker").removeAttr('style');
+				if(saveObj.length && allowSave){
+					var response = data.saveSchedules(saveObj,enrollmentObject);
+					if(typeof(response) == 'boolean' && response){
+						prompt('Schedules are saved Successfully.',"Success")
+						$('.loading').hide();
+					}
+					else{
+						prompt(response,"Error");
+						$('.loading').hide();
+					}
+				}
+				else if(saveObj.length == 0){
+					prompt("Please add some data","Error");
 					$('.loading').hide();
 				}
 				else{
-					prompt(response,"Error");
 					$('.loading').hide();
 				}
-			}
-			else if(saveObj.length == 0){
-				prompt("Please add some data","Error");
-				$('.loading').hide();
-			}
-			else{
-				$('.loading').hide();
 			}
 		},50);
 	});
 
 	$('#closeBtn').off('click').on('click',function(){
-		window.close();
+		// window.close();
 	});
+
+	function validateDateOverlap(currentObj, dateList){
+		var allow = false;
+		if(currentObj.startDate.length == 0){
+			allow = true;
+		}else{
+			if(dateList.length){
+				var currStartObj = "";
+				var currEndObj = "";
+				if(currentObj.startTime.length){
+					currStartObj = new Date(currentObj.startDate+" "+currentObj.startTime);
+				}
+				if(currentObj.endDate.length && currentObj.endTime.length){
+					currEndObj = new Date(currentObj.endDate+" "+currentObj.endTime);
+				}
+
+				var currStTime = convertToMinutes(currentObj.startTime); 
+				var currEdTime = convertToMinutes(currentObj.endTime); 
+				var dropableEvent1 = dateList.filter(function (el) {
+					return  (
+		                        (
+		                            currStTime <= convertToMinutes(el.startTime) && 
+		                            currEdTime >= convertToMinutes(el.startTime)
+		                        ) ||
+		                        (
+		                            convertToMinutes(el.startTime) <= currStTime && 
+		                            convertToMinutes(el.startTime) >= currEdTime
+		                        ) ||
+		                        (
+		                            currEdTime > convertToMinutes(el.startTime) &&
+		                            convertToMinutes(el.startTime) > currStTime 
+		                        )
+		                    )
+				});
+				if(dropableEvent1.length){
+					var dropableEvent2 = [];
+					if(currEndObj == ""){
+						for(var r=0;r<dateList.length;r++){
+							var el = dateList[r];
+							var elStartObj = new Date(el.startDate+" "+el.startTime);
+							elEndObj = "";
+							if(el.endDate == ""){
+								dropableEvent2.push(el);
+							}else{
+								if(new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >= 
+										new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() && 
+										new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <= 
+										new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()){
+									dropableEvent2.push(el);
+								}
+							}
+						}
+					}else {
+						for(var r=0;r<dateList.length;r++){
+							var el = dateList[r];
+							var elStartObj = new Date(el.startDate+" "+el.startTime);
+							elEndObj = "";
+							if(el.endDate == ""){
+								dropableEvent2.push(el);
+							}else{
+								if(new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >= 
+										new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() && 
+										new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <= 
+										new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()){
+									dropableEvent2.push(el);
+								}
+							}
+						}
+					}
+					if(dropableEvent2.length){
+		            	allow = true; 
+		        	}
+				}
+			}
+		}
+		return allow;
+	}
+
+	function populateErrorField(errorArry){
+		if(errorArry.length){
+			errorArry.forEach(function(element) {
+			    $(element).css("border", "2px solid red");
+			    $(element).attr("title", "Overlaping Date");
+			    $(element).tooltip({
+		            tooltipClass: "custom-conflict",
+		            track: true,
+		        });
+			});
+		}
+	}
 
 	function convertToMinutes(timeString) {
         if (timeString != undefined) {
@@ -385,6 +527,9 @@ if(businessClosures != null && businessClosures.length){
             }
         }
     }
+
+
+
 
     function getDayValue(date) {
         if (date != undefined) {
