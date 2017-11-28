@@ -74,9 +74,12 @@ if(businessClosures != null && businessClosures.length){
 		}
 	}
 }
-
+	// var enrollmentEndDt = getQueryParm();
+	var max1Date = enrollmentObject.hub_enrollmentenddate == "undefined" ? null : new Date(enrollmentObject.hub_enrollmentenddate);
+	var min1Date = enrollmentObject.hub_enrollmentstartdate == "undefined" ? null : new Date(enrollmentObject.hub_enrollmentstartdate);
 	var dateOptions = {
-			minDate: new Date(enrollmentObject.hub_enrollmentstartdate),
+			minDate: min1Date,
+			maxDate:max1Date,
 			changeMonth: true,
   			changeYear: true,
   			beforeShowDay : DisableSpecificDates,
@@ -419,7 +422,7 @@ if(businessClosures != null && businessClosures.length){
 	});
 
 	$('#closeBtn').off('click').on('click',function(){
-		// window.close();
+		window.close();
 	});
 
 	function validateDateOverlap(currentObj, dateList){
@@ -443,15 +446,15 @@ if(businessClosures != null && businessClosures.length){
 					return  (
 		                        (
 		                            currStTime <= convertToMinutes(el.startTime) && 
-		                            currEdTime >= convertToMinutes(el.startTime)
+		                            currEdTime >= convertToMinutes(el.endTime)
 		                        ) ||
 		                        (
 		                            convertToMinutes(el.startTime) <= currStTime && 
-		                            convertToMinutes(el.startTime) >= currEdTime
+		                            convertToMinutes(el.endTime) >= currEdTime
 		                        ) ||
 		                        (
 		                            currEdTime > convertToMinutes(el.startTime) &&
-		                            convertToMinutes(el.startTime) > currStTime 
+		                            convertToMinutes(el.endTime) > currStTime 
 		                        )
 		                    )
 				});
@@ -590,6 +593,10 @@ if(businessClosures != null && businessClosures.length){
 		    $("#"+dayCode+"-start-timepicker-"+index+" ul").html(timeHTML);
 		    $("#"+dayCode+"-start-timepicker-"+index+" .dropdown-menu").on('click', 'li a', function () {
 		      if ($("#"+dayCode+"-start-timepicker-"+index+"-btn").val() != $(this).attr('value-id')) {
+		      	  $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('style');
+		      	  $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('style');
+		      	  $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('data-original-title');
+		      	  $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('data-original-title');
 		          $("#"+dayCode+"-start-timepicker-"+index+"-btn").text($(this).text());
 		          $("#"+dayCode+"-start-timepicker-"+index+"-btn").val($(this).attr('value-id'));
 		          var startTime = $("#"+dayCode+"-start-timepicker-"+index+"-btn").val();
@@ -605,6 +612,20 @@ if(businessClosures != null && businessClosures.length){
 	    var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
 	    return [disableddates.indexOf(string) == -1];
 	}
+
+	function getQueryParm(){
+        var query = decodeURIComponent(window.location.search).replace("?Data=", "");
+        var result = {};
+        if (typeof query == "undefined" || query == null) {
+            return result;
+        }
+        var queryparts = query.split("&");
+        for (var i = 0; i < queryparts.length; i++) {
+            var params = queryparts[i].split("=");
+            result[params[0]] = params.length > 1 ? params[1] : null;
+        }
+        return result;
+    }
 
 	function prompt(message,title) {
         $("#dialog > .dialog-msg").text(message);

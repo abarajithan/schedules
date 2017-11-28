@@ -146,12 +146,12 @@ var timings = [
 ];
 
 var enrollmentDetails = {
-   "location":"46ECF508-E26D-E711-80F2-C4346BACFBBC",
-   "service":"58E5F2AF-AC77-E711-80F3-C4346BAD526C",
-   "enrollment":"7F8E2789-ED8E-E711-80F7-C4346BACFBBC",
-   "student":"A0B3AE12-E68E-E711-80F7-C4346BACFBBC",
-   "enrollmentStartDate":"2017-08-31",
-   "enrollmentEndDate":"2017-11-28",
+   "hub_location":"46ECF508-E26D-E711-80F2-C4346BACFBBC",
+   "hub_service":"58E5F2AF-AC77-E711-80F3-C4346BAD526C",
+   "hub_enrollmentid":"7F8E2789-ED8E-E711-80F7-C4346BACFBBC",
+   "hub_student":"A0B3AE12-E68E-E711-80F7-C4346BACFBBC",
+   "hub_enrollmentstartdate":"2017-08-31",
+   "hub_enrollmentenddate":"2017-11-28",
    "duration":60
 };
 
