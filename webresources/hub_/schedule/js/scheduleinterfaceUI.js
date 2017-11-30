@@ -506,7 +506,7 @@ if(businessClosures != null && businessClosures.length){
 		if(errorArry.length){
 			errorArry.forEach(function(element) {
 			    $(element).css("border", "2px solid red");
-			    $(element).attr("title", "Overlaping Date");
+			    $(element).attr("title", "Overlapping Date");
 			    $(element).tooltip({
 		            tooltipClass: "custom-conflict",
 		            track: true,
