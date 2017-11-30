@@ -177,7 +177,7 @@ if(businessClosures != null && businessClosures.length){
 								'</div>'+
 								'<div>'+
 									'<div class="end-time">'+
-										'<button id="end-time-'+day+'-'+index+'" class="btn" disabled>'+endTime+'</button>' +
+										'<button id="end-time-'+day+'-'+index+'" class="btn" disabled value="'+endTime+'" >'+endTime+'</button>' +
 									'</div>'+
 								'</div>'+
 								'<div class="remove_img existingRecord visibility-off">'+
