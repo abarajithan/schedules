@@ -86,6 +86,14 @@ if(businessClosures != null && businessClosures.length){
   			onSelect: function(dateText,e) {
   				$(this).removeAttr('style');
   				$(this).removeAttr('data-original-title');
+  				var selectedId = $(this).attr("id");
+  				if(selectedId.includes("start")){
+  					selectedId = selectedId.replace("start", "end");
+  				}else{
+  					selectedId = selectedId.replace("end", "start");
+  				}
+  				$("#"+selectedId).removeAttr('style');
+  				$("#"+selectedId).removeAttr('data-original-title');
   				if($(e)[0].id.indexOf('start-datepicker') != -1){	
 		        	populateTimings(new Date(dateText),e.id.split("-")[0],e.id.split("-")[3],true)
   				}
