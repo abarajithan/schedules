@@ -443,13 +443,13 @@ if(businessClosures != null && businessClosures.length){
 				var currEndObj = "";
 				if(currentObj.startTime.length){
 					var stDateArry = moment(currentObj.startDate).format("YYYY-MM-DD").split("-");
-                    var stTimeArry = convertMinsNumToTime(convertToMinutes(startTime)).split(":");
+                    var stTimeArry = convertMinsNumToTime(convertToMinutes(currentObj.startTime)).split(":");
 					// currStartObj = new Date(currentObj.startDate+" "+currentObj.startTime);
 					currStartObj = new Date(parseInt(stDateArry[0]),parseInt(stDateArry[1])-1,parseInt(stDateArry[2]),parseInt(stTimeArry[0]),parseInt(stTimeArry[1]));
 				}
 				if(currentObj.endDate.length && currentObj.endTime.length){
 					var endDateArry = moment(currentObj.endDate).format("YYYY-MM-DD").split("-");
-                    var endTimeArry = convertMinsNumToTime(convertToMinutes(endTime)).split(":");
+                    var endTimeArry = convertMinsNumToTime(convertToMinutes(currentObj.endTime)).split(":");
 					// currEndObj = new Date(currentObj.endDate+" "+currentObj.endTime);
 					currEndObj = new Date(parseInt(endDateArry[0]),parseInt(endDateArry[1])-1,parseInt(endDateArry[2]),parseInt(endTimeArry[0]),parseInt(endTimeArry[1]));
 				}
