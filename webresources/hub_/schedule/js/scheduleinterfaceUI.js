@@ -442,10 +442,16 @@ if(businessClosures != null && businessClosures.length){
 				var currStartObj = "";
 				var currEndObj = "";
 				if(currentObj.startTime.length){
-					currStartObj = new Date(currentObj.startDate+" "+currentObj.startTime);
+					var stDateArry = moment(currentObj.startDate).format("YYYY-MM-DD").split("-");
+                    var stTimeArry = convertMinsNumToTime(convertToMinutes(startTime)).split(":");
+					// currStartObj = new Date(currentObj.startDate+" "+currentObj.startTime);
+					currStartObj = new Date(parseInt(stDateArry[0]),parseInt(stDateArry[1])-1,parseInt(stDateArry[2]),parseInt(stTimeArry[0]),parseInt(stTimeArry[1]));
 				}
 				if(currentObj.endDate.length && currentObj.endTime.length){
-					currEndObj = new Date(currentObj.endDate+" "+currentObj.endTime);
+					var endDateArry = moment(currentObj.endDate).format("YYYY-MM-DD").split("-");
+                    var endTimeArry = convertMinsNumToTime(convertToMinutes(endTime)).split(":");
+					// currEndObj = new Date(currentObj.endDate+" "+currentObj.endTime);
+					currEndObj = new Date(parseInt(endDateArry[0]),parseInt(endDateArry[1])-1,parseInt(endDateArry[2]),parseInt(endTimeArry[0]),parseInt(endTimeArry[1]));
 				}
 
 				var currStTime = convertToMinutes(currentObj.startTime); 
@@ -471,7 +477,10 @@ if(businessClosures != null && businessClosures.length){
 					if(currEndObj == ""){
 						for(var r=0;r<dateList.length;r++){
 							var el = dateList[r];
-							var elStartObj = new Date(el.startDate+" "+el.startTime);
+							var elDateArry = moment(el.startDate).format("YYYY-MM-DD").split("-");
+                    		var elTimeArry = convertMinsNumToTime(convertToMinutes(el.startTime)).split(":");
+							var elStartObj = new Date(parseInt(elDateArry[0]),parseInt(elDateArry[1])-1,parseInt(elDateArry[2]),parseInt(elTimeArry[0]),parseInt(elTimeArry[1]));
+							// var elStartObj = new Date(el.startDate+" "+el.startTime);
 							elEndObj = "";
 							if(el.endDate == ""){
 								dropableEvent2.push(el);
@@ -487,7 +496,10 @@ if(businessClosures != null && businessClosures.length){
 					}else {
 						for(var r=0;r<dateList.length;r++){
 							var el = dateList[r];
-							var elStartObj = new Date(el.startDate+" "+el.startTime);
+							var elDateArry = moment(el.startDate).format("YYYY-MM-DD").split("-");
+                    		var elTimeArry = convertMinsNumToTime(convertToMinutes(el.startTime)).split(":");
+							var elStartObj = new Date(parseInt(elDateArry[0]),parseInt(elDateArry[1])-1,parseInt(elDateArry[2]),parseInt(elTimeArry[0]),parseInt(elTimeArry[1]));
+							// var elStartObj = new Date(el.startDate+" "+el.startTime);
 							elEndObj = "";
 							if(el.endDate == ""){
 								dropableEvent2.push(el);
