@@ -119,5 +119,6 @@ tr:nth-child(even) {
 .data-container{
     margin: 0 auto;
     width: 790px;
-    overflow: auto;
+    /*overflow: auto;*/
+    height: calc(100vh - 70px);
 }
