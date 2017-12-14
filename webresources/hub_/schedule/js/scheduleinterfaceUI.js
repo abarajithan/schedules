@@ -476,8 +476,8 @@ if(businessClosures != null && businessClosures.length){
 				if(dropableEvent1.length){
 					var dropableEvent2 = [];
 					if(currEndObj == ""){
-						for(var r=0;r<dateList.length;r++){
-							var el = dateList[r];
+						for(var r=0;r<dropableEvent1.length;r++){
+							var el = dropableEvent1[r];
 							var elDateArry = moment(el.startDate).format("YYYY-MM-DD").split("-");
                     		var elTimeArry = convertMinsNumToTime(convertToMinutes(el.startTime)).split(":");
 							var elStartObj = new Date(parseInt(elDateArry[0]),parseInt(elDateArry[1])-1,parseInt(elDateArry[2]),parseInt(elTimeArry[0]),parseInt(elTimeArry[1]));
@@ -495,8 +495,8 @@ if(businessClosures != null && businessClosures.length){
 							}
 						}
 					}else {
-						for(var r=0;r<dateList.length;r++){
-							var el = dateList[r];
+						for(var r=0;r<dropableEvent1.length;r++){
+							var el = dropableEvent1[r];
 							var elDateArry = moment(el.startDate).format("YYYY-MM-DD").split("-");
                     		var elTimeArry = convertMinsNumToTime(convertToMinutes(el.startTime)).split(":");
 							var elStartObj = new Date(parseInt(elDateArry[0]),parseInt(elDateArry[1])-1,parseInt(elDateArry[2]),parseInt(elTimeArry[0]),parseInt(elTimeArry[1]));
