@@ -481,17 +481,22 @@ if(businessClosures != null && businessClosures.length){
 							var elDateArry = moment(el.startDate).format("YYYY-MM-DD").split("-");
                     		var elTimeArry = convertMinsNumToTime(convertToMinutes(el.startTime)).split(":");
 							var elStartObj = new Date(parseInt(elDateArry[0]),parseInt(elDateArry[1])-1,parseInt(elDateArry[2]),parseInt(elTimeArry[0]),parseInt(elTimeArry[1]));
-							// var elStartObj = new Date(el.startDate+" "+el.startTime);
 							elEndObj = "";
 							if(el.endDate == ""){
 								dropableEvent2.push(el);
 							}else{
-								if(new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >= 
-										new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() && 
-										new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <= 
-										new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()){
-									dropableEvent2.push(el);
-								}
+								if ((new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >=
+										new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
+										new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <=
+										new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime())
+                                    ||
+                                    (new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime()) <=
+                                        new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
+                                        new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <=
+                                        new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()
+                                    ) {
+                                    dropableEvent2.push(el);
+                                }
 							}
 						}
 					}else {
@@ -500,17 +505,28 @@ if(businessClosures != null && businessClosures.length){
 							var elDateArry = moment(el.startDate).format("YYYY-MM-DD").split("-");
                     		var elTimeArry = convertMinsNumToTime(convertToMinutes(el.startTime)).split(":");
 							var elStartObj = new Date(parseInt(elDateArry[0]),parseInt(elDateArry[1])-1,parseInt(elDateArry[2]),parseInt(elTimeArry[0]),parseInt(elTimeArry[1]));
-							// var elStartObj = new Date(el.startDate+" "+el.startTime);
 							elEndObj = "";
-							if(el.endDate == ""){
+                            if (el.endDate == "" && (new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >= new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime())) {
 								dropableEvent2.push(el);
 							}else{
-								if(new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >= 
-										new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() && 
-										new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <= 
-										new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()){
-									dropableEvent2.push(el);
-								}
+								if (new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >=
+										new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
+										new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <=
+										new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()
+                                    ||
+                                    (new Date(moment(currentObj.endDate).format("YYYY-MM-DD")).getTime() >=
+                                        new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
+                                        new Date(moment(currentObj.endDate).format("YYYY-MM-DD")).getTime() <=
+                                        new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()
+                                    )
+                                    ||
+                                    (new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime()) <=
+                                        new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
+                                        new Date(moment(currentObj.endDate).format("YYYY-MM-DD")).getTime() >=
+                                        new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()
+                                    ) {
+                                    dropableEvent2.push(el);
+                                }
 							}
 						}
 					}
