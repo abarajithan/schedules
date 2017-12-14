@@ -338,10 +338,10 @@ if(businessClosures != null && businessClosures.length){
 							if(j>0){
 								var res = validateDateOverlap(dateObj, dateArry);
 								if(res){
-									if(!isDisabled){
+									// if(!isDisabled){
 										errorArry.push('#'+dayArray[i].dayCode+'-start-datepicker-'+j);
 										errorArry.push('#'+dayArray[i].dayCode+'-end-datepicker-'+j);
-									}
+									// }
 								}
 							}
 						}
