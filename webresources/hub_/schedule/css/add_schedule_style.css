@@ -13,7 +13,7 @@
     padding-top: : 10PX;
 }
 .end-time{
-	width: 150px;
+    width: 150px;
 }
 .loading{
     width: 100%;
@@ -61,7 +61,7 @@ tr.table-header td {
 }
 
 #saveBtn,#closeBtn{
-	border: 1px solid #888;
+    border: 1px solid #888;
     background-color: #bbb;
     height: 30px;
     width: 60px;
@@ -71,7 +71,7 @@ tr.table-header td {
     outline: none;
 }
 .remove_img img{
-	width: 20px;
+    width: 20px;
 }
 .remove_img,.add_img{
     cursor: pointer;
@@ -121,4 +121,13 @@ tr:nth-child(even) {
     width: 790px;
     /*overflow: auto;*/
     height: calc(100vh - 70px);
+}
+.picker input[readonly='readonly'] {
+    cursor:initial;
+    background-color:#fff;
+
+}
+input[disabled] {
+    cursor: not-allowed !important;
+    background-color: #eee !important;
 }

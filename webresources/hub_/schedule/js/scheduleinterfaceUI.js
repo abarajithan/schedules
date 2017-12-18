@@ -86,6 +86,10 @@ if(businessClosures != null && businessClosures.length){
   			onSelect: function(dateText,e) {
   				$(this).removeAttr('style');
   				$(this).removeAttr('data-original-title');
+  				var parentDiv = $(this).parents()[1];
+  				if (!$(parentDiv).hasClass("dirty")) {
+  				    $(parentDiv).addClass("dirty");
+  				}
   				var selectedId = $(this).attr("id");
   				if(selectedId.includes("start")){
   					selectedId = selectedId.replace("start", "end");
@@ -269,7 +273,8 @@ if(businessClosures != null && businessClosures.length){
 						'</div>';
 		$("#"+day+"-td").append(template);		
 		$("#"+day+"-start-datepicker-"+index ).datepicker(dateOptions);
-		$("#"+day+"-end-datepicker-"+index ).datepicker(dateOptions);
+		$("#" + day + "-end-datepicker-" + index).datepicker(dateOptions);
+		$(".picker .hasDatepicker").attr("readonly", "readonly");
 		if(index >= 1){
 			$("#"+day+"-td .remove_img").each(function(){
 				if(!$(this).hasClass('existingRecord')){
@@ -327,7 +332,15 @@ if(businessClosures != null && businessClosures.length){
 					var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
 					var endTime = $(childrens[j]).find("#end-time-"+dayArray[i].dayCode+"-"+j).val();
 					var isDisabled = $('#'+dayArray[i].dayCode+'-start-datepicker-'+j).prop('disabled');
-					if(startDate.length){
+					if (startDate.length) {
+					    if ($(childrens[j]).find('#' + dayArray[i].dayCode + '-start-datepicker-' + j).hasClass("emptyPicker")) {
+					        $(childrens[j]).find('#' + dayArray[i].dayCode + '-start-datepicker-' + j).removeClass("emptyPicker");
+					        $(childrens[j]).find('#' + dayArray[i].dayCode + '-end-datepicker-' + j).removeClass("emptyPicker");
+					    }
+					    if ($(childrens[j]).find('#' + dayArray[i].dayCode + '-start-datepicker-' + j).hasClass("invalidDate")) {
+					        $(childrens[j]).find('#' + dayArray[i].dayCode + '-start-datepicker-' + j).removeClass("invalidDate");
+					        $(childrens[j]).find('#' + dayArray[i].dayCode + '-end-datepicker-' + j).removeClass("invalidDate");
+					    }
 						if(childrens.length > 1){
 							var dateObj	= {
 								startDate:startDate,
@@ -356,20 +369,26 @@ if(businessClosures != null && businessClosures.length){
 							var disableRow = $('#'+dayArray[i].dayCode+'-start-datepicker-'+j).parents("tr").hasClass("disableRow")
 							if(!isDisabled && !disableRow){
 								errorArry.push('#'+dayArray[i].dayCode+'-start-datepicker-'+j);
-								errorArry.push('#'+dayArray[i].dayCode+'-end-datepicker-'+j);
+								errorArry.push('#' + dayArray[i].dayCode + '-end-datepicker-' + j);
+								$('#' + dayArray[i].dayCode + '-start-datepicker-' + j).addClass("emptyPicker");
+								$('#' + dayArray[i].dayCode + '-end-datepicker-' + j).addClass("emptyPicker");
 							}
 						}
 					}					
 
 					// var startDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-datepicker-'+j).val();
-					if(startDate != ''){
+					if(startDate != '' && $('.'+dayArray[i].dayCode+'-'+j).hasClass("dirty")){
 						var obj = {};
 						obj["hub_enrollementid"]= enrollmentObject.hub_enrollmentid;
 						startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
 						// var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
 						if(endDate != ''){
 							endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
-							if(new Date(startDate).getTime() > new Date(endDate).getTime()){
+							if (new Date(startDate).getTime() > new Date(endDate).getTime()) {
+							    errorArry.push('#' + dayArray[i].dayCode + '-start-datepicker-' + j);
+							    errorArry.push('#' + dayArray[i].dayCode + '-end-datepicker-' + j);
+							    $('#' + dayArray[i].dayCode + '-start-datepicker-' + j).addClass("invalidDate");
+							    $('#' + dayArray[i].dayCode + '-end-datepicker-' + j).addClass("invalidDate");
 								prompt("One of the selected Start Date is greater than the End Date.","Error");
 								allowSave = false;
 								break;
@@ -543,9 +562,18 @@ if(businessClosures != null && businessClosures.length){
 		if(errorArry.length){
 			errorArry.forEach(function(element) {
 			    $(element).css("border", "2px solid red");
-			    $(element).attr("title", "Overlapping Date");
+			    if ($(element).hasClass("emptyPicker")) {
+			        $(element).attr("title", "Date is empty");
+			        $(element).attr("data-original-title", "Date is empty");
+			    } else if ($(element).hasClass("invalidDate")) {
+			        $(element).attr("title", "Invalid Date");
+			        $(element).attr("data-original-title","Invalid Date");
+			    } else {
+			        $(element).attr("title", "Overlapping Date");
+			        $(element).attr("data-original-title", "Overlapping Date");
+			    }
 			    $(element).tooltip({
-		            tooltipClass: "custom-conflict",
+			        tooltipClass: "custom-conflict",
 		            track: true,
 		        });
 			});
@@ -634,7 +662,12 @@ if(businessClosures != null && businessClosures.length){
 		      	  $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('style');
 		      	  $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('data-original-title');
 		      	  $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('data-original-title');
-		          $("#"+dayCode+"-start-timepicker-"+index+"-btn").text($(this).text());
+		      	  var originalParent = $(this).parents('.timing-dropdown')[0].id;
+		      	  var parentIndex = originalParent.split('-')[3];
+		      	  if (index != parentIndex) {
+		      	      index = parentIndex;
+		      	  }
+		      	  $("#" + dayCode + "-start-timepicker-" + index + "-btn").text($(this).text());
 		          $("#"+dayCode+"-start-timepicker-"+index+"-btn").val($(this).attr('value-id'));
 		          var startTime = $("#"+dayCode+"-start-timepicker-"+index+"-btn").val();
 		          var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
@@ -693,5 +726,7 @@ if(businessClosures != null && businessClosures.length){
             }
         });
     }
+
+	$(".picker .hasDatepicker").attr("readonly", "readonly");
 
 })();
