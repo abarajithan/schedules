@@ -166,19 +166,32 @@ if(businessClosures != null && businessClosures.length){
 				index = j;
 				var startDate = moment(moment(filterByDay[j]['hub_effectivestartdate']).format('YYYY-MM-DD')).format('MM/DD/YYYY');
 				var endDate = null;
+				var endDateTemplate = '<div class="picker">'+
+									'<input type="text" id="'+day+'-end-datepicker-'+index+'">'+
+								'</div>';
+				
 				if(filterByDay[j]['hub_effectiveenddate'] != undefined && filterByDay[j]['hub_effectiveenddate'] != ""){
-					endDate = moment(moment(filterByDay[j]['hub_effectiveenddate']).format('YYYY-MM-DD')).format('MM/DD/YYYY');
+				    endDate = moment(moment(filterByDay[j]['hub_effectiveenddate']).format('YYYY-MM-DD')).format('MM/DD/YYYY');
+				    var currentDateObj = new Date().setHours(00);
+				    currentDateObj = new Date(currentDateObj).setMinutes(00);
+				    currentDateObj = new Date(new Date(currentDateObj).setSeconds(00));
+				    currentDateObj = moment(currentDateObj).format('MM/DD/YYYY');
+
+				    if (moment(endDate).isBefore(currentDateObj)) {
+				        endDateTemplate = '<div class="picker">' +
+									'<input type="text" disabled id="' + day + '-end-datepicker-' + index + '">' +
+								'</div>';
+				    }
 				}
 				var startTime = tConvert(convertMinsNumToTime(filterByDay[j]["hub_starttime"]));
 				var endTime = tConvert(convertMinsNumToTime(filterByDay[j]["hub_endtime"]));
 
+                
+
 				var template = '<div id="'+filterByDay[j]['hub_timingsid']+'" class="'+day+'-'+index+'">'+
 								'<div class="picker">'+
 									'<input type="text" disabled value="'+startDate+'" id="'+day+'-start-datepicker-'+index+'">'+
-								'</div>'+
-								'<div class="picker">'+
-									'<input type="text" id="'+day+'-end-datepicker-'+index+'">'+
-								'</div>'+
+								'</div>'+endDateTemplate +
 								'<div class="picker">'+
 									'<div id="'+day+'-start-timepicker-'+index+'" class="timing-dropdown btn-group">'+
 							            '<button disabled value="'+startTime+'" id="'+day+'-start-timepicker-'+index+'-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">'+
@@ -274,7 +287,10 @@ if(businessClosures != null && businessClosures.length){
 		$("#"+day+"-td").append(template);		
 		$("#"+day+"-start-datepicker-"+index ).datepicker(dateOptions);
 		$("#" + day + "-end-datepicker-" + index).datepicker(dateOptions);
-		$(".picker .hasDatepicker").attr("readonly", "readonly");
+		$(".picker .hasDatepicker").keydown(restrictKeysInDatePicker);
+		$(".picker .hasDatepicker").bind('cut copy paste', function (e) {
+		    e.preventDefault();
+		});
 		if(index >= 1){
 			$("#"+day+"-td .remove_img").each(function(){
 				if(!$(this).hasClass('existingRecord')){
@@ -294,7 +310,8 @@ if(businessClosures != null && businessClosures.length){
 	    for (var i = parseInt(index); i < childrens.length; i++) {
 	    	$("#"+day+"-start-datepicker-"+(i+1) ).datepicker("destroy");
 			$("#"+day+"-end-datepicker-"+(i+1) ).datepicker("destroy");
-	    	$(childrens[i]).attr('class',day+'-'+i);
+	    	$(childrens[i]).removeClass(day + '-' + (i + 1));
+	    	$(childrens[i]).addClass(day + '-' + i);
 	    	$(childrens[i]).find('#'+day+'-start-datepicker-'+(i+1)).attr('id',day+'-start-datepicker-'+i);
 	    	$(childrens[i]).find('#'+day+'-end-datepicker-'+(i+1)).attr('id',day+'-end-datepicker-'+i);
 	    	$(childrens[i]).find('#'+day+'-start-timepicker-'+(i+1)).attr('id',day+'-start-timepicker-'+i);
@@ -727,6 +744,21 @@ if(businessClosures != null && businessClosures.length){
         });
     }
 
-	$(".picker .hasDatepicker").attr("readonly", "readonly");
+	$(".picker .hasDatepicker").keydown(restrictKeysInDatePicker);
+	$(".picker .hasDatepicker").bind('cut copy paste', function (e) {
+	    e.preventDefault();
+	});
+
+	function restrictKeysInDatePicker(eve){
+	    if (eve.keyCode == 8 || eve.keyCode == 46) {
+	        eve.target.value = "";
+	        var parentDiv = $(eve.target).parents()[1];
+	        if (!$(parentDiv).hasClass("dirty")) {
+	            $(parentDiv).addClass("dirty");
+	        }
+	    } else {
+	        return false;
+	    }
+	}
 
 })();
