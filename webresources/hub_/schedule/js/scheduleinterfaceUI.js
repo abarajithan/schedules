@@ -16,6 +16,8 @@ var enrollmentObject = data.getEnrollmentDetails();
 var disableddates = [];
 var timingsData = data.getTimings();
 var existingData = data.getExistingSchedules();
+var status_Deleted = 2;
+var status_Active = 1;
 
 timingsData = ( timingsData == null ) ? [] : timingsData;
 existingData = ( existingData == null ) ? [] : existingData;
@@ -186,8 +188,6 @@ if(businessClosures != null && businessClosures.length){
 				var startTime = tConvert(convertMinsNumToTime(filterByDay[j]["hub_starttime"]));
 				var endTime = tConvert(convertMinsNumToTime(filterByDay[j]["hub_endtime"]));
 
-                
-
 				var template = '<div id="'+filterByDay[j]['hub_timingsid']+'" class="'+day+'-'+index+'">'+
 								'<div class="picker">'+
 									'<input type="text" disabled value="'+startDate+'" id="'+day+'-start-datepicker-'+index+'">'+
@@ -205,8 +205,8 @@ if(businessClosures != null && businessClosures.length){
 										'<button id="end-time-'+day+'-'+index+'" class="btn" disabled value="'+endTime+'" >'+endTime+'</button>' +
 									'</div>'+
 								'</div>'+
-								'<div class="remove_img existingRecord visibility-off">'+
-									'<img x-id="'+day+'-'+index+'" day="'+day+'"id="remove-'+day+'-'+index+'" src="/webresources/hub_/schedule/images/close.png">'+
+								'<div class="remove_existing existingRecord visibility-on removeRow">' +
+									'<img x-id="'+day+'-'+index+'" day="'+day+'"id="remove-'+day+'-'+index+'" src="/webresources/hub_/schedule/images/remove.png">'+
 								'</div>';
 				if(!j){
 					template+= 	'<div class="add_img">'+
@@ -244,7 +244,7 @@ if(businessClosures != null && businessClosures.length){
 									'<button id="end-time-'+day+'-'+index+'" class="btn" disabled></button>' +
 								'</div>'+
 							'</div>'+
-							'<div class="remove_img visibility-off">'+
+							'<div class="remove_img visibility-off removeRow">' +
 								'<img x-id="'+day+'-'+index+'" day="'+day+'"id="remove-'+day+'-'+index+'" src="/webresources/hub_/schedule/images/close.png">'+
 							'</div>'+
 							'<div class="add_img">'+
@@ -280,7 +280,7 @@ if(businessClosures != null && businessClosures.length){
 									'<button id="end-time-'+day+'-'+index+'" class="btn" disabled></button>'+
 								'</div>'+
 							'</div>'+
-							'<div class="remove_img visibility-off">'+
+							'<div class="remove_img visibility-off removeRow">' +
 								'<img x-id="'+day+'-'+index+'" day="'+day+'"id="remove-'+day+'-'+index+'" src="/webresources/hub_/schedule/images/close.png">'+
 							'</div>'+
 						'</div>';
@@ -291,27 +291,25 @@ if(businessClosures != null && businessClosures.length){
 		$(".picker .hasDatepicker").bind('cut copy paste', function (e) {
 		    e.preventDefault();
 		});
-		if(index >= 1){
-			$("#"+day+"-td .remove_img").each(function(){
-				if(!$(this).hasClass('existingRecord')){
-					$(this).removeClass('visibility-off');
-					$(this).addClass('visibility-on');
-				}
-			});
+		if (index >= 1) {
+		    $("#" + day + "-td .removeRow").each(function () {
+		            $(this).removeClass('visibility-off');
+		            $(this).addClass('visibility-on');
+		    });
 		}
 	});
 
-	$('body').on('click', '.remove_img img', function() {
+	$('body').on('click', '.remove_img img', function () {
 		var rowId = $(this).attr('x-id');
 		var day = rowId.split('-')[0];
 		var index = rowId.split('-')[1];
-	    $('.'+rowId).remove();
+		$('.' + rowId).remove();
 	    var childrens = $("#"+day+"-td").children();
 	    for (var i = parseInt(index); i < childrens.length; i++) {
 	    	$("#"+day+"-start-datepicker-"+(i+1) ).datepicker("destroy");
 			$("#"+day+"-end-datepicker-"+(i+1) ).datepicker("destroy");
-	    	$(childrens[i]).removeClass(day + '-' + (i + 1));
-	    	$(childrens[i]).addClass(day + '-' + i);
+			$(childrens[i]).removeClass(day + '-' + (i + 1));
+			$(childrens[i]).addClass(day + '-' + i);
 	    	$(childrens[i]).find('#'+day+'-start-datepicker-'+(i+1)).attr('id',day+'-start-datepicker-'+i);
 	    	$(childrens[i]).find('#'+day+'-end-datepicker-'+(i+1)).attr('id',day+'-end-datepicker-'+i);
 	    	$(childrens[i]).find('#'+day+'-start-timepicker-'+(i+1)).attr('id',day+'-start-timepicker-'+i);
@@ -322,7 +320,7 @@ if(businessClosures != null && businessClosures.length){
 	    		var addImgTemplate = '<div class="add_img">'+
 										'<img day="'+day+'"id="add_'+day+'_row" src="/webresources/hub_/schedule/images/add_circle.png">'+
 									'</div>';
-	    		$(childrens[i]).find('.remove_img').after(addImgTemplate);
+	    		$(childrens[i]).find('.removeRow').after(addImgTemplate);
 	    	}
 	    	$("#"+day+"-start-datepicker-"+i ).datepicker(dateOptions);
 			$("#"+day+"-end-datepicker-"+i ).datepicker(dateOptions);
@@ -333,17 +331,87 @@ if(businessClosures != null && businessClosures.length){
 		}
 	});
 
+	$('body').on('click', '.remove_existing img', function (event) {
+	    var rowId = $(this).attr('x-id');
+	    var day = rowId.split('-')[0];
+	    var index = rowId.split('-')[1];
+	    var childrens = $("#" + day + "-td").children();
+	    $('.loading').css('height', window.outerHeight + "px");
+	    $('.loading').show();
+	    var deletedSchedule = convertObjectsForService(day, index, status_Deleted);
+	    var deleteStatus = data.deleteSchedules(deletedSchedule, enrollmentObject);
+	    if (typeof (deleteStatus) == 'boolean' && deleteStatus) {
+	        $('.loading').hide();
+	        if (childrens.length == 1) {
+	            var startTimepicker = $('#' + day + '-start-timepicker-' + index + '-btn');
+	            var endTimePicker = $('#end-time-' + day + '-' + index);
+	            var caretTemplate = '<span class="caret"></span>';
+	            var removeRow = $("#" + day + "-td .removeRow");
+	            var dropdownTemplate = '<ul class="dropdown-menu"></ul>';
+	            $('.' + day + '-' + index + ' .picker input').val("");
+	            $('.' + day + '-' + index + ' .picker input').removeAttr("disabled");
+	            startTimepicker.text("");
+	            startTimepicker.val("");
+	            startTimepicker.removeAttr("disabled");
+	            startTimepicker.append(caretTemplate);
+	            $('#' + day + '-start-timepicker-' + index + ' ul').remove();
+	            $('#' + day + '-start-timepicker-' + index).append(dropdownTemplate);
+	            endTimePicker.text("");
+	            endTimePicker.val("");
+	            removeRow.removeClass('remove_existing existingRecord visibility-on');
+	            removeRow.addClass('remove_img visibility-off');
+	            $("#" + day + "-td .removeRow img").attr("src", "/webresources/hub_/schedule/images/close.png");
+	            event.stopPropagation();
+	        } else {
+	            $('.' + rowId).remove();
+	            childrens = $("#" + day + "-td").children();
+	            for (var i = parseInt(index) ; i < childrens.length; i++) {
+	                $("#" + day + "-start-datepicker-" + (i + 1)).datepicker("destroy");
+	                $("#" + day + "-end-datepicker-" + (i + 1)).datepicker("destroy");
+	                $(childrens[i]).removeClass(day + '-' + (i + 1));
+	                $(childrens[i]).addClass(day + '-' + i);
+	                $(childrens[i]).find('#' + day + '-start-datepicker-' + (i + 1)).attr('id', day + '-start-datepicker-' + i);
+	                $(childrens[i]).find('#' + day + '-end-datepicker-' + (i + 1)).attr('id', day + '-end-datepicker-' + i);
+	                $(childrens[i]).find('#' + day + '-start-timepicker-' + (i + 1)).attr('id', day + '-start-timepicker-' + i);
+	                $(childrens[i]).find('#' + day + '-start-timepicker-' + (i + 1) + "-btn").attr('id', day + '-start-timepicker-' + i + "-btn");
+	                $(childrens[i]).find('#end-time-' + day + '-' + (i + 1)).attr('id', 'end-time-' + day + '-' + i);
+	                $(childrens[i]).find('#remove-' + day + '-' + (i + 1)).attr('id', 'remove-' + day + '-' + i).attr('x-id', day + '-' + i);
+	                if (!i) {
+	                    var addImgTemplate = '<div class="add_img">' +
+                                                '<img day="' + day + '"id="add_' + day + '_row" src="/webresources/hub_/schedule/images/add_circle.png">' +
+                                            '</div>';
+	                    $(childrens[i]).find('.removeRow').after(addImgTemplate);
+	                }
+	                $("#" + day + "-start-datepicker-" + i).datepicker(dateOptions);
+	                $("#" + day + "-end-datepicker-" + i).datepicker(dateOptions);
+	            }
+	            if (childrens.length == 1) {
+	                $("#" + day + "-td .remove_img").removeClass('visibility-on');
+	                $("#" + day + "-td .remove_img").addClass('visibility-off');
+	            }
+	        }
+	        $("#" + day + "-td").addClass("existingScheduleRemoved");
+	    } else {
+	        $('.loading').hide();
+	        prompt(deleteStatus, "Error");
+	    }
+	})
+
 	$('#saveBtn').off('click').on('click',function(){
 		var saveObj = [];
 		$('.loading').css('height',window.outerHeight + "px");
 		$('.loading').show();
 		setTimeout(function(){
-			var allowSave = true;
+		    var allowSave = true;
+		    var existingDataRemoved = false;
 			var errorArry = [];
 			for (var i = 0; i < dayArray.length; i++) {
 				var childrens = $("#"+dayArray[i].dayCode+"-td").children();
 				var dateArry = [];
 				for (var j = 0; j < childrens.length; j++) {
+				    if ($("#" + dayArray[i].dayCode + "-td").hasClass("existingScheduleRemoved")) {
+				        existingDataRemoved = true;
+				    }
 					var startDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-datepicker-'+j).val();
 					var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
 					var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
@@ -429,6 +497,7 @@ if(businessClosures != null && businessClosures.length){
 						obj['hub_starttime'] = startTime;
 						obj['hub_endtime'] = endTime;
 						obj['hub_days'] = dayArray[i].dayId;
+						obj['hub_status'] = status_Active;
 						if($(childrens[j]).attr('id') != ''){
 							obj['hub_timingsid'] = $(childrens[j]).attr('id');
 						}
@@ -444,7 +513,7 @@ if(businessClosures != null && businessClosures.length){
 				$(".hasDatepicker").removeAttr("data-original-title");
 				$(".hasDatepicker").removeAttr("title");
 				$(".hasDatepicker").removeAttr('style');
-				if(saveObj.length && allowSave){
+				if((saveObj.length && allowSave) || (existingDataRemoved && allowSave)){
 					var response = data.saveSchedules(saveObj,enrollmentObject);
 					if(typeof(response) == 'boolean' && response){
 						prompt('Schedules are saved Successfully.',"Success")
@@ -455,7 +524,7 @@ if(businessClosures != null && businessClosures.length){
 						$('.loading').hide();
 					}
 				}
-				else if(saveObj.length == 0){
+				else if (saveObj.length == 0) {
 					prompt("Please add some data","Error");
 					$('.loading').hide();
 				}
@@ -759,6 +828,37 @@ if(businessClosures != null && businessClosures.length){
 	    } else {
 	        return false;
 	    }
+	}
+
+	function convertObjectsForService(day, index, status) {
+	    convertedObj = {};
+	    var startDate = $("#" + day + "-start-datepicker-" + index).val();
+	    startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD');
+	    var endDate = $("#" + day + "-end-datepicker-" + index).val();
+	    if (endDate) {
+	        endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD');
+	    }
+	    var startTime = $("#" + day + "-start-timepicker-" + index + "-btn").val();
+	    startTime = convertToMinutes(startTime);
+	    var endTime = $("#end-time-" + day + "-" + index).val();
+	    endTime = convertToMinutes(endTime);
+	    var timingId = $("." + day + "-" + index).attr("id");
+	    convertedObj["hub_enrollementid"] = enrollmentObject.hub_enrollmentid;
+	    convertedObj['hub_effectivestartdate'] = startDate;
+	    convertedObj['hub_effectiveenddate'] = endDate;
+	    convertedObj['hub_starttime'] = startTime;
+	    convertedObj['hub_endtime'] = endTime;
+	    var dayIndex = $.map(dayArray, function (obj, index) {
+	        if (obj.dayCode == day) {
+	            return index;
+	        }
+	    })
+	    convertedObj['hub_days'] = dayArray[dayIndex].dayId;
+	    convertedObj['hub_status'] = status;
+	    if (timingId) {
+	        convertedObj['hub_timingsid'] = timingId;
+	    }
+	    return convertedObj;
 	}
 
 })();
