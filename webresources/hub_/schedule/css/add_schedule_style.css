@@ -73,7 +73,7 @@ tr.table-header td {
 .remove_img img{
     width: 20px;
 }
-.remove_img,.add_img{
+.removeRow,.add_img{
     cursor: pointer;
 }
 .visibility-off{
