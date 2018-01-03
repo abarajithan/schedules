@@ -13,7 +13,7 @@
     padding-top: : 10PX;
 }
 .end-time{
-    width: 150px;
+	width: 150px;
 }
 .loading{
     width: 100%;
@@ -61,7 +61,7 @@ tr.table-header td {
 }
 
 #saveBtn,#closeBtn{
-    border: 1px solid #888;
+	border: 1px solid #888;
     background-color: #bbb;
     height: 30px;
     width: 60px;
@@ -71,7 +71,7 @@ tr.table-header td {
     outline: none;
 }
 .remove_img img{
-    width: 20px;
+	width: 20px;
 }
 .removeRow,.add_img{
     cursor: pointer;
@@ -130,4 +130,10 @@ tr:nth-child(even) {
 input[disabled] {
     cursor: not-allowed !important;
     background-color: #eee !important;
+}
+.dialogheader td{
+    font-weight: bold;
+}
+#enrollmentTable td {
+    padding:5px 5px;
 }
