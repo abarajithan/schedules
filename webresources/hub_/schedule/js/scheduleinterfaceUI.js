@@ -100,8 +100,10 @@ if(businessClosures != null && businessClosures.length){
   				}
   				$("#"+selectedId).removeAttr('style');
   				$("#"+selectedId).removeAttr('data-original-title');
-  				if($(e)[0].id.indexOf('start-datepicker') != -1){	
-		        	populateTimings(new Date(dateText),e.id.split("-")[0],e.id.split("-")[3],true)
+  				if ($(e)[0].id.indexOf('start-datepicker') != -1) {
+  				    populateTimings(new Date(dateText), e.id.split("-")[0], e.id.split("-")[3], true)
+  				} else {
+  				    checkEndDateValidity(new Date(dateText), e.id.split("-")[0], e.id.split("-")[3])
   				}
 		    }
 		};
@@ -299,8 +301,8 @@ if(businessClosures != null && businessClosures.length){
 		}
 	});
 
-	$('body').on('click', '.remove_img img', function () {
-		var rowId = $(this).attr('x-id');
+	function removeSchedule(event) {
+	    var rowId = $(event.target).attr('x-id');
 		var day = rowId.split('-')[0];
 		var index = rowId.split('-')[1];
 		$('.' + rowId).remove();
@@ -329,10 +331,10 @@ if(businessClosures != null && businessClosures.length){
 			$("#"+day+"-td .remove_img").removeClass('visibility-on');
 			$("#"+day+"-td .remove_img").addClass('visibility-off');
 		}
-	});
+	};
 
-	$('body').on('click', '.remove_existing img', function (event) {
-	    var rowId = $(this).attr('x-id');
+	 function removeExistingSchedule (event) {
+	    var rowId = $(event.target).attr('x-id');
 	    var day = rowId.split('-')[0];
 	    var index = rowId.split('-')[1];
 	    var childrens = $("#" + day + "-td").children();
@@ -340,9 +342,11 @@ if(businessClosures != null && businessClosures.length){
 	    $('.loading').show();
 	    var deletedSchedule = convertObjectsForService(day, index, status_Deleted);
 	    var deleteStatus = data.deleteSchedules(deletedSchedule, enrollmentObject);
+	    $("." + rowId).removeAttr("id");
 	    if (typeof (deleteStatus) == 'boolean' && deleteStatus) {
 	        $('.loading').hide();
 	        if (childrens.length == 1) {
+
 	            var startTimepicker = $('#' + day + '-start-timepicker-' + index + '-btn');
 	            var endTimePicker = $('#end-time-' + day + '-' + index);
 	            var caretTemplate = '<span class="caret"></span>';
@@ -395,6 +399,19 @@ if(businessClosures != null && businessClosures.length){
 	        $('.loading').hide();
 	        prompt(deleteStatus, "Error");
 	    }
+	}
+
+	 $("body").on("click", ".removeRow img", function (event) {
+	     var rowId = $(event.target).attr('x-id');
+	     var day = rowId.split('-')[0];
+	     var index = rowId.split('-')[1];
+	     var startDate = $("#"+day+"-start-datepicker-"+index).val();
+	     if (startDate != "") {
+	         deleteConfirmationPopup("Are you sure you want to delete this schedule ?", event);
+	     } else {
+	         removeSchedule(event);
+	     }
+	     
 	})
 
 	$('#saveBtn').off('click').on('click',function(){
@@ -449,15 +466,22 @@ if(businessClosures != null && businessClosures.length){
 							endDate:endDate,
 							endTime:endTime	
 						}); 
-					}else{
+					} else {
+					    var disableRow = $('#' + dayArray[i].dayCode + '-start-datepicker-' + j).parents("tr").hasClass("disableRow")
 						if(childrens.length > 1){
-							var disableRow = $('#'+dayArray[i].dayCode+'-start-datepicker-'+j).parents("tr").hasClass("disableRow")
 							if(!isDisabled && !disableRow){
-								errorArry.push('#'+dayArray[i].dayCode+'-start-datepicker-'+j);
-								errorArry.push('#' + dayArray[i].dayCode + '-end-datepicker-' + j);
-								$('#' + dayArray[i].dayCode + '-start-datepicker-' + j).addClass("emptyPicker");
-								$('#' + dayArray[i].dayCode + '-end-datepicker-' + j).addClass("emptyPicker");
+							    errorArry.push('#' + dayArray[i].dayCode + '-start-datepicker-' + j);
+							    $('#' + dayArray[i].dayCode + '-start-datepicker-' + j).addClass("emptyPicker");
+							    if (endDate == "") {
+							        errorArry.push('#' + dayArray[i].dayCode + '-end-datepicker-' + j);
+							        $('#' + dayArray[i].dayCode + '-end-datepicker-' + j).addClass("emptyPicker");
+							    }
 							}
+						} else if (endDate != '') {
+						    if (!disableRow) {
+						        errorArry.push('#' + dayArray[i].dayCode + '-start-datepicker-' + j);
+						        $('#' + dayArray[i].dayCode + '-start-datepicker-' + j).addClass("emptyPicker");
+						    }
 						}
 					}					
 
@@ -467,19 +491,18 @@ if(businessClosures != null && businessClosures.length){
 						obj["hub_enrollementid"]= enrollmentObject.hub_enrollmentid;
 						startDate = moment(moment(startDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
 						// var endDate = $(childrens[j]).find('#'+dayArray[i].dayCode+'-end-datepicker-'+j).val();
-						if(endDate != ''){
-							endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
-							if (new Date(startDate).getTime() > new Date(endDate).getTime()) {
-							    errorArry.push('#' + dayArray[i].dayCode + '-start-datepicker-' + j);
-							    errorArry.push('#' + dayArray[i].dayCode + '-end-datepicker-' + j);
-							    $('#' + dayArray[i].dayCode + '-start-datepicker-' + j).addClass("invalidDate");
-							    $('#' + dayArray[i].dayCode + '-end-datepicker-' + j).addClass("invalidDate");
-								prompt("One of the selected Start Date is greater than the End Date.","Error");
-								allowSave = false;
-								break;
-							}
+						if (endDate != '') {
+						    endDate = moment(moment(endDate).format('MM/DD/YYYY')).format('YYYY-MM-DD')
+						    if (new Date(startDate).getTime() > new Date(endDate).getTime()) {
+						        errorArry.push('#' + dayArray[i].dayCode + '-start-datepicker-' + j);
+						        errorArry.push('#' + dayArray[i].dayCode + '-end-datepicker-' + j);
+						        $('#' + dayArray[i].dayCode + '-start-datepicker-' + j).addClass("invalidDate");
+						        $('#' + dayArray[i].dayCode + '-end-datepicker-' + j).addClass("invalidDate");
+						        prompt("One of the selected Start Date is greater than the End Date.", "Error");
+						        allowSave = false;
+						        break;
+						    }
 						}
-
 						// var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
 						if(startTime == ""){
 							startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').text();
@@ -514,14 +537,15 @@ if(businessClosures != null && businessClosures.length){
 				$(".hasDatepicker").removeAttr("title");
 				$(".hasDatepicker").removeAttr('style');
 				if((saveObj.length && allowSave) || (existingDataRemoved && allowSave)){
-					var response = data.saveSchedules(saveObj,enrollmentObject);
-					if(typeof(response) == 'boolean' && response){
+				    var response = data.saveSchedules(saveObj, enrollmentObject);
+				    $('.loading').hide();
+					if (typeof (response) == 'boolean' && response) {
 						prompt('Schedules are saved Successfully.',"Success")
-						$('.loading').hide();
-					}
+					} else if (typeof (response) == "object" && response != null) {
+					    overlappingScheduleDialog(response);
+                    }
 					else{
 						prompt(response,"Error");
-						$('.loading').hide();
 					}
 				}
 				else if (saveObj.length == 0) {
@@ -715,53 +739,106 @@ if(businessClosures != null && businessClosures.length){
 
     function populateTimings(date,dayCode,index,setValue){
     	var day = dayArray.filter(function(x){return x.dayCode == dayCode});
-    	var timingArry =[], timeHTML = [],ConvertedTimingArry = [];
-    	for (var i = 0; i < timingsData.length; i++) {
-		  	if(day[0].dayId == timingsData[i]['hub_days']){
-		    	for(var j= timingsData[i]['hub_starttime']; j < timingsData[i]['hub_endtime']; j = j+enrollmentObject.duration){
-		      		timingArry.push(j);
-		    	}
-		  	}
-		}
-		if(timingArry.length){
-		  	timingArry.sort(function(a, b){return a-b});
-		  	for(var i=0; i< timingArry.length; i++){
-		    	ConvertedTimingArry.push(tConvert(convertMinsNumToTime(timingArry[i])));
-		  	}
-		}
-		if(ConvertedTimingArry.length){
-		    for (var i = 0; i < ConvertedTimingArry.length; i++) {
-		        if (!i && setValue) {
-		            $("#"+dayCode+"-start-timepicker-"+index+"-btn").text(ConvertedTimingArry[i]);
-		            $("#"+dayCode+"-start-timepicker-"+index+"-btn").val(ConvertedTimingArry[i]);
-		            var startTime = ConvertedTimingArry[i];
-		            var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
-	           		$("#end-time-"+dayCode+"-"+index).val(endTime);
-	            	$("#end-time-"+dayCode+"-"+index).text(endTime);
-	        	}
-		        timeHTML.push('<li><a tabindex="-1" value-id="' + ConvertedTimingArry[i] + '" href="javascript:void(0)">' + ConvertedTimingArry[i] + '</a></li>');
-		    }
-		    $("#"+dayCode+"-start-timepicker-"+index+" ul").html(timeHTML);
-		    $("#"+dayCode+"-start-timepicker-"+index+" .dropdown-menu").on('click', 'li a', function () {
-		      if ($("#"+dayCode+"-start-timepicker-"+index+"-btn").val() != $(this).attr('value-id')) {
-		      	  $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('style');
-		      	  $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('style');
-		      	  $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('data-original-title');
-		      	  $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('data-original-title');
-		      	  var originalParent = $(this).parents('.timing-dropdown')[0].id;
-		      	  var parentIndex = originalParent.split('-')[3];
-		      	  if (index != parentIndex) {
-		      	      index = parentIndex;
-		      	  }
-		      	  $("#" + dayCode + "-start-timepicker-" + index + "-btn").text($(this).text());
-		          $("#"+dayCode+"-start-timepicker-"+index+"-btn").val($(this).attr('value-id'));
-		          var startTime = $("#"+dayCode+"-start-timepicker-"+index+"-btn").val();
-		          var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
-		          $("#end-time-"+dayCode+"-"+index).val(endTime);
-		          $("#end-time-"+dayCode+"-"+index).text(endTime);
-		      }
-		    });
-		}
+    	var timingArry = [], timeHTML = [], ConvertedTimingArry = [];
+    	var endDatePicker = $("#" + dayCode + "-end-datepicker-" + index);
+    	var startDatePicker = $("#" + dayCode + "-start-datepicker-" + index);
+    	var endDate = endDatePicker.val();
+    	var currentDay = timingsData.filter(function (x) {
+    	    if (day[0].dayId == x.hub_days) {
+    	        return x;
+    	    }
+    	});
+    	var startDateValidity = false;
+    	for (var k = 0; k < currentDay.length; k++) {
+    	    if ((new Date(moment(date).format("YYYY-MM-DD")).getTime() >= new Date(moment(currentDay[k].hub_effectivestartdate).format("YYYY-MM-DD")).getTime())) {
+    	        startDateValidity = true;
+    	    }
+    	}
+    	if (startDateValidity ) {
+    	    for (var i = 0; i < timingsData.length; i++) {
+    	        if (day[0].dayId == timingsData[i]['hub_days']) {
+    	            var fallsInRange = false;
+    	            if (endDate != "") {
+    	                if (new Date(moment(date).format("YYYY-MM-DD")).getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("YYYY-MM-DD")).getTime()) {
+    	                    fallsInRange = true;
+    	                } else if (new Date(moment(date).format("YYYY-MM-DD")).getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("YYYY-MM-DD")).getTime()
+                                && new Date(moment(endDate).format("YYYY-MM-DD")).getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("YYYY-MM-DD")).getTime()
+                            ) {
+    	                    fallsInRange = true;
+    	                }
+    	            } else {
+    	                fallsInRange = true;
+    	            }
+    	            var disabledPicker = startDatePicker.attr("disabled");
+    	            if (fallsInRange && disabledPicker != "disabled") {
+    	                for (var j = timingsData[i]['hub_starttime']; j < timingsData[i]['hub_endtime']; j = j + enrollmentObject.duration) {
+    	                    timingArry.push(j);
+    	                }
+    	            }
+    	        }
+    	    }
+    	    if (timingArry.length) {
+    	        timingArry.sort(function (a, b) { return a - b });
+    	        for (var i = 0; i < timingArry.length; i++) {
+    	            ConvertedTimingArry.push(tConvert(convertMinsNumToTime(timingArry[i])));
+    	        }
+    	    }
+    	    if (ConvertedTimingArry.length) {
+    	        for (var i = 0; i < ConvertedTimingArry.length; i++) {
+    	            var previousStartTime = $("#" + dayCode + "-start-timepicker-" + index + "-btn").val();
+    	            var previousEndTime = $("#end-time-" + dayCode + "-" + index).val();
+    	            var indexOfTime = ConvertedTimingArry.indexOf(previousStartTime)
+    	            if (!i && setValue && indexOfTime == -1) {
+    	                $("#" + dayCode + "-start-timepicker-" + index + "-btn").text(ConvertedTimingArry[i]);
+    	                $("#" + dayCode + "-start-timepicker-" + index + "-btn").val(ConvertedTimingArry[i]);
+    	                var startTime = ConvertedTimingArry[i];
+    	                var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
+    	                $("#end-time-" + dayCode + "-" + index).val(endTime);
+    	                $("#end-time-" + dayCode + "-" + index).text(endTime);
+    	            }
+    	            timeHTML.push('<li><a tabindex="-1" value-id="' + ConvertedTimingArry[i] + '" href="javascript:void(0)">' + ConvertedTimingArry[i] + '</a></li>');
+    	        }
+    	        $("#" + dayCode + "-start-timepicker-" + index + " ul").html(timeHTML);
+    	        $("#" + dayCode + "-start-timepicker-" + index + " .dropdown-menu").on('click', 'li a', function () {
+    	            if ($("#" + dayCode + "-start-timepicker-" + index + "-btn").val() != $(this).attr('value-id')) {
+    	                $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('style');
+    	                $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('style');
+    	                $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('data-original-title');
+    	                $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('data-original-title');
+    	                var originalParent = $(this).parents('.timing-dropdown')[0].id;
+    	                var parentIndex = originalParent.split('-')[3];
+    	                if (index != parentIndex) {
+    	                    index = parentIndex;
+    	                }
+    	                $("#" + dayCode + "-start-timepicker-" + index + "-btn").text($(this).text());
+    	                $("#" + dayCode + "-start-timepicker-" + index + "-btn").val($(this).attr('value-id'));
+    	                var startTime = $("#" + dayCode + "-start-timepicker-" + index + "-btn").val();
+    	                var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
+    	                $("#end-time-" + dayCode + "-" + index).val(endTime);
+    	                $("#end-time-" + dayCode + "-" + index).text(endTime);
+    	            }
+    	        });
+    	    }
+    	} else {
+    	    var timepickerValue = $("#" + dayCode + "-start-timepicker-" + index + "-btn").text();
+    	    if (timepickerValue) {
+    	        var startTimepicker = $('#' + dayCode + '-start-timepicker-' + index + '-btn');
+    	        var caretTemplate = '<span class="caret"></span>';
+    	        var dropdownTemplate = '<ul class="dropdown-menu"></ul>';
+    	        $("#" + dayCode + "-start-timepicker-" + index + "-btn").text("");
+    	        $("#" + dayCode + "-start-timepicker-" + index + "-btn").val("");
+    	        $("#end-time-" + dayCode + "-" + index).text("");
+    	        $("#end-time-" + dayCode + "-" + index).val("");
+    	        startTimepicker.removeAttr("disabled");
+    	        startTimepicker.append(caretTemplate);
+    	        $('#' + dayCode + '-start-timepicker-' + index + ' ul').remove();
+    	        $('#' + dayCode + '-start-timepicker-' + index).append(dropdownTemplate);
+    	    }
+    	    var startDatePicker = $("#" + dayCode + "-start-datepicker-" + index);
+    	    startDatePicker.css("border", "2px solid red");
+    	    prompt("No Center Hour Timings found for the given Date", "Error");
+    	    startDatePicker.val("");
+    	}
     }
 
 	function DisableSpecificDates(date) {
@@ -859,6 +936,67 @@ if(businessClosures != null && businessClosures.length){
 	        convertedObj['hub_timingsid'] = timingId;
 	    }
 	    return convertedObj;
+	}
+
+	function checkEndDateValidity(date, dayCode, index) {
+	    var day = dayArray.filter(function (x) { return x.dayCode == dayCode });
+	    var startDatePicker = $("#" + dayCode + "-start-datepicker-" + index);
+	    var startDate = startDatePicker.val();
+	    if (startDate) {
+	        populateTimings(startDate, dayCode, index, true)
+	    }
+	}
+
+	function deleteConfirmationPopup (message,originalEvnt) {
+	    $("#dialog > .dialog-msg").text(message);
+	    $("#dialog").dialog({
+	        title: "",
+	        resizable: false,
+	        height: "auto",
+	        width: 350,
+	        draggable: false,
+	        modal: true,
+	        buttons: {
+	            Yes: function () {
+	                $(this).dialog("close");
+	                var parentDiv = $(originalEvnt.target.parentElement);
+	                if (parentDiv.hasClass("remove_existing")) {
+	                    removeExistingSchedule(originalEvnt);
+	                } else {
+	                    removeSchedule(originalEvnt);
+	                }
+	            },
+	            No: function () {
+	                $(this).dialog("close");
+	            }
+	        }
+	    });
+	}
+
+	function overlappingScheduleDialog(response) {
+	    var overlappingTableBody = $("#enrollmentTable");
+	    var enrollmentBody = "";
+	    $('.enrollmentRow').remove();
+	    for (var i = 0; i < response.length; i++) {
+	        enrollmentBody = "<tr class='enrollmentRow'><td>" + response[i]["_hub_enrollment_value@OData.Community.Display.V1.FormattedValue"] +
+                                "</td><td>" + response[i]["hub_session_date@OData.Community.Display.V1.FormattedValue"] +
+                                "</td><td>" + response[i]["hub_sessiontype@OData.Community.Display.V1.FormattedValue"] +
+                                "</td><td>" + response[i]["hub_session_status@OData.Community.Display.V1.FormattedValue"] + "</td></tr>";
+	        overlappingTableBody.append(enrollmentBody);
+	    }
+	    $("#overlapDialog").dialog({
+	        title: "There is an overlap in the schedule with the following enrollment",
+	        resizable: false,
+	        height: "auto",
+	        draggable: false,
+	        modal: true,
+            width:700,
+	        buttons: {
+	            Close: function () {
+	                $(this).dialog("close");
+	            }
+	        }
+	    });
 	}
 
 })();
