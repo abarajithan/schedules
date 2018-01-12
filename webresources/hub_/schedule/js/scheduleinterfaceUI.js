@@ -33,7 +33,7 @@ var filteredArray = arr.filter(function(item, pos){
 
 
 function convertMinsNumToTime(minsNum){
-  	if(minsNum){
+    if($.isNumeric(minsNum)){
         // var mins_num = parseFloat(this, 10); // don't forget the second param
         var hours   = Math.floor(minsNum / 60);
         var minutes = Math.floor((minsNum - ((hours * 3600)) / 60));
@@ -93,7 +93,7 @@ if(businessClosures != null && businessClosures.length){
   				    $(parentDiv).addClass("dirty");
   				}
   				var selectedId = $(this).attr("id");
-  				if(selectedId.includes("start")){
+  				if(selectedId.indexOf("start") != -1){
   					selectedId = selectedId.replace("start", "end");
   				}else{
   					selectedId = selectedId.replace("end", "start");
@@ -346,7 +346,6 @@ if(businessClosures != null && businessClosures.length){
 	    if (typeof (deleteStatus) == 'boolean' && deleteStatus) {
 	        $('.loading').hide();
 	        if (childrens.length == 1) {
-
 	            var startTimepicker = $('#' + day + '-start-timepicker-' + index + '-btn');
 	            var endTimePicker = $('#end-time-' + day + '-' + index);
 	            var caretTemplate = '<span class="caret"></span>';
@@ -407,7 +406,7 @@ if(businessClosures != null && businessClosures.length){
 	     var index = rowId.split('-')[1];
 	     var startDate = $("#"+day+"-start-datepicker-"+index).val();
 	     if (startDate != "") {
-	         deleteConfirmationPopup("Are you sure you want to delete this schedule ?", event);
+	         deleteConfirmationPopup("Are you sure you want to delete the schedule ?", event);
 	     } else {
 	         removeSchedule(event);
 	     }
@@ -694,6 +693,9 @@ if(businessClosures != null && businessClosures.length){
         if (timeString != undefined) {
             if (timeString.split(' ')[1] == 'AM') {
                 var hours = parseInt(moment(timeString, 'h:mm A').format('h'));
+                if (hours == 12) {
+                    hours = 0;
+                }
                 var minutes = parseInt(moment(timeString, 'h:mm A').format('mm'));
                 return (hours * 60) + minutes;
             }
@@ -977,20 +979,32 @@ if(businessClosures != null && businessClosures.length){
 	    var overlappingTableBody = $("#enrollmentTable");
 	    var enrollmentBody = "";
 	    $('.enrollmentRow').remove();
-	    for (var i = 0; i < response.length; i++) {
+	    for (var i = 0; i < response.length; i++) { 
+	        var enrollmentDate = new Date(moment(response[i]["hub_session_date@OData.Community.Display.V1.FormattedValue"]).format("YYYY-MM-DD"));
+	        var enrollmentDay = enrollmentDate.getDay();
+	        if (enrollmentDay == 0) {
+	            enrollmentDay = 7;
+	        }
+	        enrollmentDay = dayArray.filter(function (x) { 
+	            if (x.dayId == enrollmentDay) {
+	                return x;
+	            }
+            });
+	        var enrollmentTiming = response[i]["hub_start_time@OData.Community.Display.V1.FormattedValue"] + " - " + response[i]["hub_end_time@OData.Community.Display.V1.FormattedValue"];
 	        enrollmentBody = "<tr class='enrollmentRow'><td>" + response[i]["_hub_enrollment_value@OData.Community.Display.V1.FormattedValue"] +
                                 "</td><td>" + response[i]["hub_session_date@OData.Community.Display.V1.FormattedValue"] +
+                                "</td><td>" + enrollmentDay[0].dayValue + "</td><td>" + enrollmentTiming +
                                 "</td><td>" + response[i]["hub_sessiontype@OData.Community.Display.V1.FormattedValue"] +
                                 "</td><td>" + response[i]["hub_session_status@OData.Community.Display.V1.FormattedValue"] + "</td></tr>";
 	        overlappingTableBody.append(enrollmentBody);
 	    }
 	    $("#overlapDialog").dialog({
-	        title: "There is an overlap in the schedule with the following enrollment",
+	        title: "Found overlapping sessions (Float/Makeup/Rescheduled) for this schedule. Please cancel those sessions to commit this schedule OR change this schedule timings.",
 	        resizable: false,
 	        height: "auto",
 	        draggable: false,
 	        modal: true,
-            width:700,
+            width:800,
 	        buttons: {
 	            Close: function () {
 	                $(this).dialog("close");
