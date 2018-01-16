@@ -613,15 +613,15 @@ if(businessClosures != null && businessClosures.length){
 							if(el.endDate == ""){
 								dropableEvent2.push(el);
 							}else{
-								if ((new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >=
-										new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
-										new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <=
-										new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime())
+							    if ((new Date(moment(currentObj.startDate).format("MM-DD-YYYY")).getTime() >=
+										new Date(moment(el.startDate).format("MM-DD-YYYY")).getTime() &&
+										new Date(moment(currentObj.startDate).format("MM-DD-YYYY")).getTime() <=
+										new Date(moment(el.endDate).format("MM-DD-YYYY")).getTime())
                                     ||
-                                    (new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime()) <=
-                                        new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
-                                        new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <=
-                                        new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()
+                                    (new Date(moment(currentObj.startDate).format("MM-DD-YYYY")).getTime()) <=
+                                        new Date(moment(el.startDate).format("MM-DD-YYYY")).getTime() &&
+                                        new Date(moment(currentObj.startDate).format("MM-DD-YYYY")).getTime() <=
+                                        new Date(moment(el.endDate).format("MM-DD-YYYY")).getTime()
                                     ) {
                                     dropableEvent2.push(el);
                                 }
@@ -634,24 +634,32 @@ if(businessClosures != null && businessClosures.length){
                     		var elTimeArry = convertMinsNumToTime(convertToMinutes(el.startTime)).split(":");
 							var elStartObj = new Date(parseInt(elDateArry[0]),parseInt(elDateArry[1])-1,parseInt(elDateArry[2]),parseInt(elTimeArry[0]),parseInt(elTimeArry[1]));
 							elEndObj = "";
-                            if (el.endDate == "" && (new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >= new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime())) {
+							if (el.endDate == "" && ((new Date(moment(currentObj.startDate).format("MM-DD-YYYY")).getTime() >=
+                                                        new Date(moment(el.startDate).format("MM-DD-YYYY")).getTime()) ||
+                                                        (new Date(moment(currentObj.startDate).format("MM-DD-YYYY")).getTime() <= 
+                                                        new Date(moment(el.startDate).format("MM-DD-YYYY")).getTime() && 
+                                                        new Date(moment(currentObj.endDate).format("MM-DD-YYYY")).getTime() >=
+                                                        new Date(moment(el.startDate).format("MM-DD-YYYY")).getTime()
+                                                        )
+                                                    )
+                                ) {
 								dropableEvent2.push(el);
 							}else{
-								if (new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() >=
-										new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
-										new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime() <=
-										new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()
+							    if (new Date(moment(currentObj.startDate).format("MM-DD-YYYY")).getTime() >=
+										new Date(moment(el.startDate).format("MM-DD-YYYY")).getTime() &&
+										new Date(moment(currentObj.startDate).format("MM-DD-YYYY")).getTime() <=
+										new Date(moment(el.endDate).format("MM-DD-YYYY")).getTime()
                                     ||
-                                    (new Date(moment(currentObj.endDate).format("YYYY-MM-DD")).getTime() >=
-                                        new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
-                                        new Date(moment(currentObj.endDate).format("YYYY-MM-DD")).getTime() <=
-                                        new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()
+                                    (new Date(moment(currentObj.endDate).format("MM-DD-YYYY")).getTime() >=
+                                        new Date(moment(el.startDate).format("MM-DD-YYYY")).getTime() &&
+                                        new Date(moment(currentObj.endDate).format("MM-DD-YYYY")).getTime() <=
+                                        new Date(moment(el.endDate).format("MM-DD-YYYY")).getTime()
                                     )
                                     ||
-                                    (new Date(moment(currentObj.startDate).format("YYYY-MM-DD")).getTime()) <=
-                                        new Date(moment(el.startDate).format("YYYY-MM-DD")).getTime() &&
-                                        new Date(moment(currentObj.endDate).format("YYYY-MM-DD")).getTime() >=
-                                        new Date(moment(el.endDate).format("YYYY-MM-DD")).getTime()
+                                    (new Date(moment(currentObj.startDate).format("MM-DD-YYYY")).getTime()) <=
+                                        new Date(moment(el.startDate).format("MM-DD-YYYY")).getTime() &&
+                                        new Date(moment(currentObj.endDate).format("MM-DD-YYYY")).getTime() >=
+                                        new Date(moment(el.endDate).format("MM-DD-YYYY")).getTime()
                                     ) {
                                     dropableEvent2.push(el);
                                 }
@@ -752,7 +760,7 @@ if(businessClosures != null && businessClosures.length){
     	});
     	var startDateValidity = false;
     	for (var k = 0; k < currentDay.length; k++) {
-    	    if ((new Date(moment(date).format("YYYY-MM-DD")).getTime() >= new Date(moment(currentDay[k].hub_effectivestartdate).format("YYYY-MM-DD")).getTime())) {
+    	    if ((new Date(moment(date).format("MM-DD-YYYY")).getTime() >= new Date(moment(currentDay[k].hub_effectivestartdate).format("MM-DD-YYYY")).getTime())) {
     	        startDateValidity = true;
     	    }
     	}
@@ -761,10 +769,10 @@ if(businessClosures != null && businessClosures.length){
     	        if (day[0].dayId == timingsData[i]['hub_days']) {
     	            var fallsInRange = false;
     	            if (endDate != "") {
-    	                if (new Date(moment(date).format("YYYY-MM-DD")).getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("YYYY-MM-DD")).getTime()) {
+    	                if (new Date(moment(date).format("MM-DD-YYYY")).getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
     	                    fallsInRange = true;
-    	                } else if (new Date(moment(date).format("YYYY-MM-DD")).getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("YYYY-MM-DD")).getTime()
-                                && new Date(moment(endDate).format("YYYY-MM-DD")).getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("YYYY-MM-DD")).getTime()
+    	                } else if (new Date(moment(date).format("MM-DD-YYYY")).getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
+                                && new Date(moment(endDate).format("MM-DD-YYYY")).getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
                             ) {
     	                    fallsInRange = true;
     	                }
@@ -980,7 +988,7 @@ if(businessClosures != null && businessClosures.length){
 	    var enrollmentBody = "";
 	    $('.enrollmentRow').remove();
 	    for (var i = 0; i < response.length; i++) { 
-	        var enrollmentDate = new Date(moment(response[i]["hub_session_date@OData.Community.Display.V1.FormattedValue"]).format("YYYY-MM-DD"));
+	        var enrollmentDate = new Date(moment(response[i]["hub_session_date@OData.Community.Display.V1.FormattedValue"]).format("MM-DD-YYYY"));
 	        var enrollmentDay = enrollmentDate.getDay();
 	        if (enrollmentDay == 0) {
 	            enrollmentDay = 7;
