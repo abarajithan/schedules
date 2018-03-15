@@ -3,6 +3,9 @@
     var data = new Data();
 
     var enrollmentObject = data.getEnrollmentDetails();
+    if (!enrollmentObject.duration) {
+        enrollmentObject.duration = 60;
+    }
     //enrollmentObject contains the below params
     //hub_location
     //hub_service
@@ -34,6 +37,9 @@
 
 
     function convertMinsNumToTime(minsNum) {
+        if (minsNum > 1425) {
+            minsNum = 00;
+        }
         if ($.isNumeric(minsNum)) {
             // var mins_num = parseFloat(this, 10); // don't forget the second param
             var hours = Math.floor(minsNum / 60);
@@ -78,8 +84,8 @@
         }
     }
     // var enrollmentEndDt = getQueryParm();
-    var max1Date = enrollmentObject.hub_enrollmentenddate == "undefined" ? null : new Date(enrollmentObject.hub_enrollmentenddate);
-    var min1Date = enrollmentObject.hub_enrollmentstartdate == "undefined" ? null : new Date(enrollmentObject.hub_enrollmentstartdate);
+    var max1Date = enrollmentObject.hub_enrollmentenddate == "undefined" ? null : new Date(moment(enrollmentObject.hub_enrollmentenddate).format("MM-DD-YYYY"));
+    var min1Date = enrollmentObject.hub_enrollmentstartdate == "undefined" ? null : new Date(moment(enrollmentObject.hub_enrollmentstartdate).format("MM-DD-YYYY"));
     var dateOptions = {
         minDate: min1Date,
         maxDate: max1Date,
@@ -101,10 +107,18 @@
             }
             $("#" + selectedId).removeAttr('style');
             $("#" + selectedId).removeAttr('data-original-title');
-            if ($(e)[0].id.indexOf('start-datepicker') != -1) {
-                populateTimings(new Date(dateText), e.id.split("-")[0], e.id.split("-")[3], true)
+            if (enrollmentObject.hub_customertype != 1) {
+                if ($(e)[0].id.indexOf('start-datepicker') != -1) {
+                    populateTimings(new Date(dateText), e.id.split("-")[0], e.id.split("-")[3], true)
+                } else {
+                    checkEndDateValidity(new Date(dateText), e.id.split("-")[0], e.id.split("-")[3])
+                }
             } else {
-                checkEndDateValidity(new Date(dateText), e.id.split("-")[0], e.id.split("-")[3])
+                var formedId = e.id.split("-")[0] + "-start-timepicker-" + e.id.split("-")[3];
+                var timingDropMenu = $("#" + formedId + " .dropdown-menu li")
+                if (timingDropMenu && timingDropMenu.length == 0) {
+                    populateAllTimings(e.id.split("-")[0], e.id.split("-")[3]);
+                }
             }
         }
     };
@@ -155,7 +169,9 @@
         }
     }
     for (var i = 0; i < unAvailableDays.length; i++) {
-        $('table tr:nth-child(' + (unAvailableDays[i] + 1) + ')').addClass('disableRow');
+        if (enrollmentObject.hub_customertype != 1) {
+            $('table tr:nth-child(' + (unAvailableDays[i] + 1) + ')').addClass('disableRow');
+        }
     }
 
 
@@ -1020,6 +1036,48 @@
                 }
             }
         });
+    }
+
+    function populateAllTimings(dayCode,index) {
+        var startTiming = 480;
+        var endTiming = 1200;
+        var defaultTimeInterval = 15;
+        var timingArry = [];
+        var ConvertedTimingArry = [];
+        var timeHTML = [];
+        for (var timing = startTiming; (timing + enrollmentObject.duration) <= endTiming; timing = timing + defaultTimeInterval) {
+            timingArry.push(timing);
+        }
+        timingArry.sort(function (a, b) { return a - b });
+        for (var i = 0; i < timingArry.length; i++) {
+            ConvertedTimingArry.push(tConvert(convertMinsNumToTime(timingArry[i])));
+        }
+        if (ConvertedTimingArry.length) {
+            for (var i = 0; i < ConvertedTimingArry.length; i++) {
+                timeHTML.push('<li><a tabindex="-1" value-id="' + ConvertedTimingArry[i] + '" href="javascript:void(0)">' + ConvertedTimingArry[i] + '</a></li>');
+            }
+            $("#" + dayCode + "-start-timepicker-" + index + " ul").html(timeHTML);
+            $("#" + dayCode + "-start-timepicker-" + index + " .dropdown-menu").on('click', 'li a', function () {
+                if ($("#" + dayCode + "-start-timepicker-" + index + "-btn").val() != $(this).attr('value-id')) {
+                    $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('style');
+                    $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('style');
+                    $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('data-original-title');
+                    $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('data-original-title');
+                    var originalParent = $(this).parents('.timing-dropdown')[0].id;
+                    var parentIndex = originalParent.split('-')[3];
+                    if (index != parentIndex) {
+                        index = parentIndex;
+                    }
+                    $("#" + dayCode + "-start-timepicker-" + index + "-btn").text($(this).text());
+                    $("#" + dayCode + "-start-timepicker-" + index + "-btn").val($(this).attr('value-id'));
+                    var startTime = $("#" + dayCode + "-start-timepicker-" + index + "-btn").val();
+                    var endTimeMins = convertToMinutes(startTime) + enrollmentObject.duration;
+                    var endTime = tConvert(convertMinsNumToTime(endTimeMins));
+                    $("#end-time-" + dayCode + "-" + index).val(endTime);
+                    $("#end-time-" + dayCode + "-" + index).text(endTime);
+                }
+            });
+        }
     }
 
 })();
