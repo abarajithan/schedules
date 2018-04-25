@@ -236,7 +236,7 @@
                 }
                 $("#" + day + "-td").append(template);
                 if (enrollmentObject.hub_customertype != 1) {
-                    calMaxDate = getMinimumEndDate(filterByDay[j]["hub_timingsid"]);
+                    calMaxDate = getMinimumEndDate(filterByDay[j]);
                     dateOptions.maxDate = calMaxDate;
                 }
                 $("#" + day + "-start-datepicker-" + index).datepicker(dateOptions);
@@ -248,6 +248,10 @@
             }
         }
         else {
+            if (enrollmentObject.hub_customertype != 1) {
+                calMaxDate = getMinimumEndDate(dayArray[i].dayId);
+                dateOptions.maxDate = calMaxDate;
+            }
             var template = '<div class="' + day + '-' + index + '">' +
 							'<div class="picker">' +
 								'<input type="text" id="' + day + '-start-datepicker-' + index + '">' +
@@ -282,6 +286,7 @@
     }
 
     $('body').on('click', '.add_img img', function () {
+        dateOptions.maxDate = enrollmentObject.hub_enrollmentenddate == "undefined" ? null : new Date(moment(enrollmentObject.hub_enrollmentenddate).format("MM-DD-YYYY"));
         var day = $(this).attr('day');
         var index = $("#" + $(this).attr('day') + "-td").children().length;
         var template = '<div class="' + day + '-' + index + '">' +
@@ -713,6 +718,9 @@
                 } else if ($(element).hasClass("invalidTime")) {
                     $(element).attr("title", "Invalid Time");
                     $(element).attr("data-original-title", "Invalid Time");
+                }else if($(element).hasClass("outOfRange")){
+                    $(element).attr("title", "No Instructional Hours Found ");
+                    $(element).attr("data-original-title", "No Instructional Hours Found ");
                 }else {
                     $(element).attr("title", "Overlapping Date");
                     $(element).attr("data-original-title", "Overlapping Date");
@@ -791,6 +799,7 @@
             }
         });
         var startDateValidity = false;
+        var endDateValidity = false;
         for (var k = 0; k < currentDay.length; k++) {
             if ((date.getTime() >= new Date(moment(currentDay[k].hub_effectivestartdate).format("MM-DD-YYYY")).getTime())) {
                 if (currentDay[k].hub_effectiveenddate && date.getTime() <= new Date(moment(currentDay[k].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
@@ -799,65 +808,75 @@
                     startDateValidity = true;
                 }
             }
+            if (endDate && currentDay[k].hub_effectiveenddate && endDate.getTime() <= new Date(moment(currentDay[k].hub_effectiveenddate).format("MM-DD-YYYY")).getTime() &&
+                endDate.getTime() >= new Date(moment(currentDay[k].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
+                endDateValidity = true;
+            } else if (!endDate) {
+                endDateValidity = true;
+            } else if (!currentDay[k].hub_effectiveenddate && endDate.getTime() >= new Date(moment(currentDay[k].hub_effectivestartdate).format("MM-DD-YYYY")).getTime() &&
+                     date.getTime() >= new Date(moment(currentDay[k].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
+                endDateValidity = true;
+            }
         }
-        if (startDateValidity) {
-            for (var i = 0; i < timingsData.length; i++) {
-                if (day[0].dayId == timingsData[i]['hub_days']) {
-                    var fallsInRange = false;
-                    if (endDate != "") {
-                        if (timingsData[i].hub_effectiveenddate) {
-                            if (date.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime() && 
-                                date.getTime() <= new Date(moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
-                                fallsInRange = true;
-                            } else if (date.getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime() &&
-                                new Date(moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY")).getTime() <= endDate.getTime()) {
-                                fallsInRange = true;
+            if (startDateValidity && endDateValidity) {
+                $(endDatePicker).removeClass('outOfRange');
+                for (var i = 0; i < timingsData.length; i++) {
+                    if (day[0].dayId == timingsData[i]['hub_days']) {
+                        var fallsInRange = false;
+                        if (endDate != "") {
+                            if (timingsData[i].hub_effectiveenddate) {
+                                if (date.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime() &&
+                                    date.getTime() <= new Date(moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
+                                    fallsInRange = true;
+                                } else if (date.getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime() &&
+                                    endDate.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
+                                    fallsInRange = true;
+                                }
+                            } else {
+                                if (date.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
+                                    fallsInRange = true;
+                                } else if (date.getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
+                                        && endDate.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
+                                    ) {
+                                    fallsInRange = true;
+                                }
                             }
                         } else {
-                            if (date.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
-                                fallsInRange = true;
-                            } else if (date.getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
-                                    && endDate.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
-                                ) {
+                            if (timingsData[i].hub_effectiveenddate) {
+                                if (date.getTime() <= new Date(moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
+                                    fallsInRange = true;
+                                }
+                            }
+                            else {
                                 fallsInRange = true;
                             }
                         }
-                    } else {
-                        if (timingsData[i].hub_effectiveenddate) {
-                            if (date.getTime() <= new Date(moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
-                                fallsInRange = true;
+                        var disabledPicker = startDatePicker.attr("disabled");
+                        if (fallsInRange && disabledPicker != "disabled") {
+                            for (var j = timingsData[i]['hub_starttime']; j < timingsData[i]['hub_endtime']; j = j + enrollmentObject.duration) {
+                                timingArry.push(j);
                             }
                         }
-                         else {
-                            fallsInRange = true;
-                        }
                     }
-                    var disabledPicker = startDatePicker.attr("disabled");
-                    if (fallsInRange && disabledPicker != "disabled") {
-                        for (var j = timingsData[i]['hub_starttime']; j < timingsData[i]['hub_endtime']; j = j + enrollmentObject.duration) {
-                            timingArry.push(j);
+                }
+                if (timingArry.length) {
+                    timingArry.sort(function (a, b) { return a - b });
+                    for (var i = 0; i < timingArry.length; i++) {
+                        var convertedTime = tConvert(convertMinsNumToTime(timingArry[i]));
+                        if (ConvertedTimingArry.indexOf(convertedTime) == -1) {
+                            ConvertedTimingArry.push(convertedTime);
                         }
                     }
                 }
-            }
-            if (timingArry.length) {
-                timingArry.sort(function (a, b) { return a - b });
-                for (var i = 0; i < timingArry.length; i++) {
-                    var convertedTime = tConvert(convertMinsNumToTime(timingArry[i]));
-                    if (ConvertedTimingArry.indexOf(convertedTime) == -1) {
-                        ConvertedTimingArry.push(convertedTime);
-                    }
-                }
-            }
-            if (ConvertedTimingArry.length) {
-                for (var i = 0; i < ConvertedTimingArry.length; i++) {
-                    var previousStartTime = $("#" + dayCode + "-start-timepicker-" + index + "-btn").val();
-                    var previousEndTime = $("#end-time-" + dayCode + "-" + index).val();
+                if (ConvertedTimingArry.length) {
+                    for (var i = 0; i < ConvertedTimingArry.length; i++) {
+                        var previousStartTime = $("#" + dayCode + "-start-timepicker-" + index + "-btn").val();
+                        var previousEndTime = $("#end-time-" + dayCode + "-" + index).val();
                         var indexOfTime = ConvertedTimingArry.indexOf(previousStartTime)
                         if (!i && setValue && indexOfTime == -1 && previousStartTime) {
                             $("#" + dayCode + "-start-timepicker-" + index + "-btn").addClass("invalidTime");
                             populateErrorField([$("#" + dayCode + "-start-timepicker-" + index + "-btn")]);
-                        } else if (!i && setValue && indexOfTime == -1 ) {
+                        } else if (!i && setValue && indexOfTime == -1) {
                             $("#" + dayCode + "-start-timepicker-" + index + "-btn").val(ConvertedTimingArry[0]);
                             $("#" + dayCode + "-start-timepicker-" + index + "-btn").text(ConvertedTimingArry[0]);
                             var startTime = ConvertedTimingArry[0];
@@ -865,53 +884,86 @@
                             $("#end-time-" + dayCode + "-" + index).val(endTime);
                             $("#end-time-" + dayCode + "-" + index).text(endTime);
                         }
-                    timeHTML.push('<li><a tabindex="-1" value-id="' + ConvertedTimingArry[i] + '" href="javascript:void(0)">' + ConvertedTimingArry[i] + '</a></li>');
-                }
-                $("#" + dayCode + "-start-timepicker-" + index + " ul").html(timeHTML);
-                $("#" + dayCode + "-start-timepicker-" + index + " .dropdown-menu").on('click', 'li a', function () {
-                    if ($("#" + dayCode + "-start-timepicker-" + index + "-btn").val() != $(this).attr('value-id')) {
-                        $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('style');
-                        $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('style');
-                        $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('data-original-title');
-                        $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('data-original-title');
-                        var originalParent = $(this).parents('.timing-dropdown')[0].id;
-                        var parentIndex = originalParent.split('-')[3];
-                        if (index != parentIndex) {
-                            index = parentIndex;
-                        }
-                        var startTimepicker = $("#" + dayCode + "-start-timepicker-" + index + "-btn")
-                        startTimepicker.text($(this).text());
-                        startTimepicker.val($(this).attr('value-id'));
-                        startTimepicker.removeAttr('style');
-                        startTimepicker.removeAttr('title');
-                        startTimepicker.removeAttr('data-original-title');
-                        var startTime = startTimepicker.val();
-                        var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
-                        $("#end-time-" + dayCode + "-" + index).val(endTime);
-                        $("#end-time-" + dayCode + "-" + index).text(endTime);
+                        timeHTML.push('<li><a tabindex="-1" value-id="' + ConvertedTimingArry[i] + '" href="javascript:void(0)">' + ConvertedTimingArry[i] + '</a></li>');
                     }
-                });
+                    $("#" + dayCode + "-start-timepicker-" + index + " ul").html(timeHTML);
+                    $("#" + dayCode + "-start-timepicker-" + index + " .dropdown-menu").on('click', 'li a', function () {
+                        if ($("#" + dayCode + "-start-timepicker-" + index + "-btn").val() != $(this).attr('value-id')) {
+                            $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('style');
+                            var endDate = $(this).parents(".picker").prev().find(".hasDatepicker").val();
+                            $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('style');
+                            var date = $(this).parents(".picker").prev().prev().find(".hasDatepicker").val();
+                            $(this).parents(".picker").prev().find(".hasDatepicker").removeAttr('data-original-title');
+                            $(this).parents(".picker").prev().prev().find(".hasDatepicker").removeAttr('data-original-title');
+                            var originalParent = $(this).parents('.timing-dropdown')[0].id;
+                            var parentIndex = originalParent.split('-')[3];
+                            if (index != parentIndex) {
+                                index = parentIndex;
+                            }
+                            var startTimepicker = $("#" + dayCode + "-start-timepicker-" + index + "-btn")
+                            startTimepicker.text($(this).text());
+                            startTimepicker.val($(this).attr('value-id'));
+                            startTimepicker.removeAttr('style');
+                            startTimepicker.removeAttr('title');
+                            startTimepicker.removeAttr('data-original-title');
+                            var startTime = startTimepicker.val();
+                            var endTime = tConvert(convertMinsNumToTime(convertToMinutes(startTime) + enrollmentObject.duration));
+                            $("#end-time-" + dayCode + "-" + index).val(endTime);
+                            $("#end-time-" + dayCode + "-" + index).text(endTime);
+
+                            var obj = {};
+                            obj['hub_effectivestartdate'] = date;
+                            obj['hub_effectiveenddate'] = endDate;
+                            obj['hub_starttime'] = convertToMinutes(startTime);
+                            obj['hub_endtime'] = convertToMinutes(endTime);
+                            var day = dayArray.filter(function (x) { return x.dayCode == dayCode });
+                            obj['hub_days'] = day[0].dayId;
+                            var maxEndDate = getMinimumEndDate(obj);
+                            dateOptions.maxDate = maxEndDate;
+                            $("#" + dayCode + "-start-datepicker-" + index).datepicker("destroy");
+                            $("#" + dayCode + "-end-datepicker-" + index).datepicker("destroy");
+                            $("#" + dayCode + "-start-datepicker-" + index).datepicker(dateOptions);
+                            $("#" + dayCode + "-end-datepicker-" + index).datepicker(dateOptions);
+                        }
+                    });
+                }
+                var obj = {};
+                obj['hub_effectivestartdate'] = date;
+                obj['hub_effectiveenddate'] = endDate;
+                obj['hub_starttime'] = convertToMinutes($("#" + dayCode + "-start-timepicker-" + index + "-btn").val());
+                obj['hub_endtime'] = convertToMinutes($("#end-time-" + dayCode + "-" + index).val());
+                obj['hub_days'] = day[0].dayId;
+                var maxEndDate = getMinimumEndDate(obj);
+                dateOptions.maxDate = maxEndDate;
+                $("#" + dayCode + "-start-datepicker-" + index).datepicker("destroy");
+                $("#" + dayCode + "-end-datepicker-" + index).datepicker("destroy");
+                $("#" + dayCode + "-start-datepicker-" + index).datepicker(dateOptions);
+                $("#" + dayCode + "-end-datepicker-" + index).datepicker(dateOptions);
             }
-        } else {
-            var timepickerValue = $("#" + dayCode + "-start-timepicker-" + index + "-btn").text();
-            if (timepickerValue) {
-                var startTimepicker = $('#' + dayCode + '-start-timepicker-' + index + '-btn');
-                var caretTemplate = '<span class="caret"></span>';
-                var dropdownTemplate = '<ul class="dropdown-menu"></ul>';
-                $("#" + dayCode + "-start-timepicker-" + index + "-btn").text("");
-                $("#" + dayCode + "-start-timepicker-" + index + "-btn").val("");
-                $("#end-time-" + dayCode + "-" + index).text("");
-                $("#end-time-" + dayCode + "-" + index).val("");
-                startTimepicker.removeAttr("disabled");
-                startTimepicker.append(caretTemplate);
-                $('#' + dayCode + '-start-timepicker-' + index + ' ul').remove();
-                $('#' + dayCode + '-start-timepicker-' + index).append(dropdownTemplate);
+            if (!startDateValidity) {
+                var timepickerValue = $("#" + dayCode + "-start-timepicker-" + index + "-btn").text();
+                if (timepickerValue) {
+                    var startTimepicker = $('#' + dayCode + '-start-timepicker-' + index + '-btn');
+                    var caretTemplate = '<span class="caret"></span>';
+                    var dropdownTemplate = '<ul class="dropdown-menu"></ul>';
+                    startTimepicker.text("");
+                    startTimepicker.val("");
+                    $("#end-time-" + dayCode + "-" + index).text("");
+                    $("#end-time-" + dayCode + "-" + index).val("");
+                    startTimepicker.removeAttr("disabled");
+                    startTimepicker.append(caretTemplate);
+                    $('#' + dayCode + '-start-timepicker-' + index + ' ul').remove();
+                    $('#' + dayCode + '-start-timepicker-' + index).append(dropdownTemplate);
+                }
+                var startDatePicker = $("#" + dayCode + "-start-datepicker-" + index);
+                startDatePicker.css("border", "2px solid red");
+                prompt("No Center Hour Timings found for the given Date", "Error");
+                startDatePicker.val("");
             }
-            var startDatePicker = $("#" + dayCode + "-start-datepicker-" + index);
-            startDatePicker.css("border", "2px solid red");
-            prompt("No Center Hour Timings found for the given Date", "Error");
-            startDatePicker.val("");
-        }
+            if (!endDateValidity) {
+                endDatePicker.addClass("outOfRange");
+                populateErrorField([endDatePicker]);
+            }
     }
 
     function DisableSpecificDates(date) {
@@ -1126,22 +1178,54 @@
         }
     }
 
-    function getMinimumEndDate(timingId) {
+    function getMinimumEndDate(scheduleData) {
+        var startDate = new Date(moment(scheduleData['hub_effectivestartdate']).format("MM-DD-YYYY"));
+        var startTime = scheduleData['hub_starttime'];
+        var endTime = scheduleData['hub_endtime']
+        var selectedDay = scheduleData['hub_days'];
+        var endDate;
+        if (scheduleData['hub_effectiveenddate']) {
+            endDate = new Date(moment(scheduleData['hub_effectiveenddate']).format("MM-DD-YYYY"));
+        }
         var timingsEndDate = timingsData.filter(function (timing,k) {
-            if (timingId == timing.hub_timingsid && timing.hub_effectiveenddate) {
-                return timingsData[k];
+            if (timing.hub_effectiveenddate && selectedDay == timing['hub_days']) {
+                timing.hub_effectivestartdate = new Date(moment(timing.hub_effectivestartdate).format("MM-DD-YYYY"));
+                timing.hub_effectiveenddate = new Date(moment(timing.hub_effectiveenddate).format("MM-DD-YYYY"));
+                if (startDate.getTime() >= timing.hub_effectivestartdate.getTime() && startDate.getTime() <= timing.hub_effectiveenddate.getTime() && endDate &&
+                    endDate.getTime() <= timing.hub_effectiveenddate.getTime() && endDate.getTime() >= timing.hub_effectivestartdate.getTime()) {
+                    if (startTime >= timing.hub_starttime && startTime <= timing.hub_endtime && endTime >= timing.hub_starttime && endTime <= timing.hub_endtime) {
+                        return timing;
+                    }
+                } else if (!endDate) {
+                    if (startDate.getTime() <= timing.hub_effectiveenddate.getTime() && startTime >= timing.hub_starttime && startTime <= timing.hub_endtime &&
+                        endTime >= timing.hub_starttime && endTime <= timing.hub_endtime) {
+                        return timing;
+                    }
+                }
+            } else if (selectedDay == timing['hub_days'] && !timing.hub_effectiveenddate) {
+                if (endDate && endDate.getTime() >= timing.hub_effectivestartdate.getTime()) {
+                    return null;
+                }
             }
         });
+
+        if (timingsEndDate.indexOf(null) == -1) {
+            timingsEndDate = timingsEndDate.sort(function (a, b) { return new Date(moment(b.hub_effectiveenddate).format("MM-DD-YYYY")) - new Date(moment(a.hub_effectiveenddate).format("MM-DD-YYYY")) });
+        } else {
+            timingsEndDate = [];
+        }
+
         if (timingsEndDate.length) {
             timingsEndDate = new Date(moment(timingsEndDate[0].hub_effectiveenddate).format("MM-DD-YYYY"));
-            if (new Date(moment(enrollmentObject.hub_enrollmentenddate).format("MM-DD-YYYY")).getTime() > timingsEndDate.getTime()) {
+            if (enrollmentObject.hub_enrollmentenddate && new Date(moment(enrollmentObject.hub_enrollmentenddate).format("MM-DD-YYYY")).getTime() > timingsEndDate.getTime()) {
+                return timingsEndDate;
+            } else if (!enrollmentObject.hub_enrollmentenddate) {
                 return timingsEndDate;
             } else {
-                return new Date(moment(enrollmentObject.hub_enrollmentenddate).format("MM-DD-YYYY"));
+                return enrollmentObject.hub_enrollmentenddate == "undefined" ? null : new Date(moment(enrollmentObject.hub_enrollmentenddate).format("MM-DD-YYYY"));
             }
         } else {
             return enrollmentObject.hub_enrollmentenddate == "undefined" ? null : new Date(moment(enrollmentObject.hub_enrollmentenddate).format("MM-DD-YYYY"));
         }
     }
-
 })();
