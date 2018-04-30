@@ -110,7 +110,7 @@
                 if ($(e)[0].id.indexOf('start-datepicker') != -1) {
                     populateTimings(new Date(dateText), e.id.split("-")[0], e.id.split("-")[3], true)
                 } else {
-                    checkEndDateValidity(new Date(dateText), e.id.split("-")[0], e.id.split("-")[3])
+                    checkEndDateValidity(e.id.split("-")[0], e.id.split("-")[3])
                 }
             } else {
                 var formedId = e.id.split("-")[0] + "-start-timepicker-" + e.id.split("-")[3];
@@ -770,6 +770,9 @@
         var endDatePicker = $("#" + dayCode + "-end-datepicker-" + index);
         var startDatePicker = $("#" + dayCode + "-start-datepicker-" + index);
         var endDate = endDatePicker.val();
+        if (endDate) {
+            endDate = new Date(moment(endDate).format("MM-DD-YYYY"));
+        }
         var currentDay = timingsData.filter(function (x) {
             if (day[0].dayId == x.hub_days) {
                 return x;
@@ -778,7 +781,11 @@
         var startDateValidity = false;
         for (var k = 0; k < currentDay.length; k++) {
             if (date.getTime() >= new Date(moment(currentDay[k].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
-                startDateValidity = true;
+                if (currentDay[k].hub_effectiveenddate && date.getTime() <= new Date(moment(currentDay[k].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
+                    startDateValidity = true;
+                } else if (!currentDay[k].hub_effectiveenddate) {
+                    startDateValidity = true;
+                }
             }
         }
         if (startDateValidity) {
@@ -786,14 +793,26 @@
                 if (day[0].dayId == timingsData[i]['hub_days']) {
                     var fallsInRange = false;
                     if (endDate != "") {
-                        if (date.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
-                            fallsInRange = true;
-                        } else if (date.getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
-                                && new Date(moment(endDate).format("MM-DD-YYYY")).getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
-                            ) {
-                            fallsInRange = true;
+                        if (timingsData[i].hub_effectiveenddate) {
+                            if (date.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime() &&
+                                date.getTime() <= new Date(moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
+                                fallsInRange = true;
+                            } else if (date.getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
+                                    && endDate.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()
+                                ) {
+                                fallsInRange = true;
+                            }
+                        } else {
+                            if (date.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
+                                    fallsInRange = true;
+                                } else if (date.getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime() &&
+                                           endDate.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
+                                           fallsInRange = true;
+                            }
                         }
-                    } else {
+                    } else if (timingsData[i].hub_effectiveenddate && date.getTime() <= new Date(moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
+                        fallsInRange = true;
+                    } else if (!timingsData[i].hub_effectiveenddate) {
                         fallsInRange = true;
                     }
                     var disabledPicker = startDatePicker.attr("disabled");
@@ -927,10 +946,14 @@
 
     function restrictKeysInDatePicker(eve) {
         if (eve.keyCode == 8 || eve.keyCode == 46) {
+            var el = eve.target;
             eve.target.value = "";
             var parentDiv = $(eve.target).parents()[1];
             if (!$(parentDiv).hasClass("dirty")) {
                 $(parentDiv).addClass("dirty");
+            }
+            if ($(el)[0].id.indexOf('end-datepicker') != -1) {
+                checkEndDateValidity(el.id.split("-")[0], el.id.split("-")[3], true)
             }
         } else {
             return false;
@@ -968,7 +991,7 @@
         return convertedObj;
     }
 
-    function checkEndDateValidity(date, dayCode, index) {
+    function checkEndDateValidity(dayCode, index) {
         var day = dayArray.filter(function (x) { return x.dayCode == dayCode });
         var startDatePicker = $("#" + dayCode + "-start-datepicker-" + index);
         var startDate = startDatePicker.val();
