@@ -379,6 +379,8 @@
                 endTimePicker.val("");
                 removeRow.removeClass('remove_existing existingRecord visibility-on');
                 removeRow.addClass('remove_img visibility-off');
+                $("#" + day + "-start-datepicker-" + index).removeAttr("style");
+                $("#" + day + "-end-datepicker-" + index).removeAttr("style");
                 $("#" + day + "-td .removeRow img").attr("src", "/webresources/hub_/schedule/images/close.png");
                 event.stopPropagation();
             } else {
@@ -402,7 +404,9 @@
                         $(childrens[i]).find('.removeRow').after(addImgTemplate);
                     }
                     $("#" + day + "-start-datepicker-" + i).datepicker(dateOptions);
+                    $("#" + day + "-start-datepicker-" + i).removeAttr("style");
                     $("#" + day + "-end-datepicker-" + i).datepicker(dateOptions);
+                    $("#" + day + "-end-datepicker-" + i).removeAttr("style");
                 }
                 if (childrens.length == 1) {
                     $("#" + day + "-td .remove_img").removeClass('visibility-on');
@@ -420,8 +424,9 @@
         var rowId = $(event.target).attr('x-id');
         var day = rowId.split('-')[0];
         var index = rowId.split('-')[1];
-        var startDate = $("#" + day + "-start-datepicker-" + index).val();
-        if (startDate != "") {
+        var startDatePicker = $("#" + day + "-start-datepicker-" + index);
+        var startDate = $(startDatePicker).val();
+        if ($(startDatePicker).attr("disabled")) {
             deleteConfirmationPopup("Are you sure you want to delete the schedule ?", event);
         } else {
             removeSchedule(event);
@@ -556,8 +561,33 @@
                     $('.loading').hide();
                     if (typeof (response) == 'boolean' && response) {
                         prompt('Schedules are saved Successfully.', "Success")
-                    } else if (typeof (response) == "object" && response != null) {
-                        overlappingScheduleDialog(response);
+                    } else if (typeof (response) == "object" && response != null && response.length) {
+                        var errorDetailTable = $(".errorDetailsTable");
+                        $("#overlapDialog hr").remove();
+                        if (errorDetailTable.length) {
+                            $(".messageHeader:not(.overlap)").remove();
+                            $(".errorDetailsTable").remove();
+                        }
+                        $.each(response, function (index,res) {
+                            if (res.type == 4) {
+                                overlappingScheduleDialog(res.objErrorRecords);
+                            } else {
+                                populateErrorDetails(res);
+                            }
+                        });
+                        $("#overlapDialog").dialog({
+                            title: "Error Description",
+                            resizable: false,
+                            height: "400",
+                            draggable: false,
+                            modal: true,
+                            width: 800,
+                            buttons: {
+                                Close: function () {
+                                    $(this).dialog("close");
+                                }
+                            }
+                        });
                     }
                     else {
                         prompt(response, "Error");
@@ -1027,7 +1057,9 @@
     }
 
     function overlappingScheduleDialog(response) {
-        var overlappingTableBody = $("#enrollmentTable");
+        $("#enrollmentTable").removeClass("displayNone");
+        $(".messageHeader").removeClass("displayNone");
+        var overlappingTableBody = $("#enrollmentTable"); 
         var enrollmentBody = "";
         $('.enrollmentRow').remove();
         for (var i = 0; i < response.length; i++) {
@@ -1049,19 +1081,6 @@
                                 "</td><td>" + response[i]["hub_session_status@OData.Community.Display.V1.FormattedValue"] + "</td></tr>";
             overlappingTableBody.append(enrollmentBody);
         }
-        $("#overlapDialog").dialog({
-            title: "Found overlapping sessions (Float/Makeup/Rescheduled) for this schedule. Please cancel those sessions to commit this schedule OR change this schedule timings.",
-            resizable: false,
-            height: "auto",
-            draggable: false,
-            modal: true,
-            width: 800,
-            buttons: {
-                Close: function () {
-                    $(this).dialog("close");
-                }
-            }
-        });
     }
 
     function populateAllTimings(dayCode,index) {
@@ -1104,6 +1123,37 @@
                 }
             });
         }
+    }
+
+    function populateErrorDetails (errorObject) {
+        var errorTableTemplate = '<hr style = "border: 1px solid #8d8d8d;"><div class= "messageHeader">' + errorObject.message + '</div><table class="errorDetailsTable" style="width: 100%;margin:0px;">' +
+                                      '<tr id="errorDetailsHeader" class="dialogheader">' +
+                                          '<td>Day</td>' +
+                                          '<td>Start Date</td>' +
+                                          '<td>End Date</td>' +
+                                          '<td>Start Time</td>' +
+                                          '<td>End Time</td>' +
+                                      '</tr>';
+        var errorTable = $(errorTableTemplate).find("table");
+        $.each(errorObject.objErrorRecords, function (key,obj) {
+            var enrollmentDay = dayArray.filter(function (x) {
+                if (x.dayId == obj["hub_day"]) {
+                    return x;
+                }
+            });
+            if (obj["hub_effectiveenddate"]) {
+                obj["hub_effectiveenddate"] = moment(obj["hub_effectiveenddate"], "YYYY/MM/DD").format("MM/DD/YYYY");
+            } else {
+                obj["hub_effectiveenddate"] = "";
+            }
+            errorTableTemplate += "<tr class='errorObjRow'><td>" + enrollmentDay[0].dayValue +
+                                "</td><td>" + moment(obj["hub_effectivestartdate"], "YYYY/MM/DD").format("MM/DD/YYYY") +
+                                "</td><td>" + obj["hub_effectiveenddate"] +
+                                "</td><td>" +tConvert(convertMinsNumToTime(obj["hub_starttime"])) +
+                                "</td><td>" +tConvert(convertMinsNumToTime(obj["hub_endtime"])) + "</td></tr>";
+        });
+        errorTableTemplate += "</table>";
+        $("#overlapDialog").append(errorTableTemplate);
     }
 
 })();
