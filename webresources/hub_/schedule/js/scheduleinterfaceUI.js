@@ -354,13 +354,13 @@
         var day = rowId.split('-')[0];
         var index = rowId.split('-')[1];
         var childrens = $("#" + day + "-td").children();
-        $('.loading').css('height', window.outerHeight + "px");
-        $('.loading').show();
+        //$('.loading').css('height', window.outerHeight + "px");
+        Xrm.Utility.showProgressIndicator("Processing Please wait...");
         var deletedSchedule = convertObjectsForService(day, index, status_Deleted);
         var deleteStatus = data.deleteSchedules(deletedSchedule, enrollmentObject);
         $("." + rowId).removeAttr("id");
         if (typeof (deleteStatus) == 'boolean' && deleteStatus) {
-            $('.loading').hide();
+            Xrm.Utility.closeProgressIndicator();
             if (childrens.length == 1) {
                 var startTimepicker = $('#' + day + '-start-timepicker-' + index + '-btn');
                 var endTimePicker = $('#end-time-' + day + '-' + index);
@@ -415,7 +415,7 @@
             }
             $("#" + day + "-td").addClass("existingScheduleRemoved");
         } else {
-            $('.loading').hide();
+            Xrm.Utility.closeProgressIndicator();
             prompt(deleteStatus, "Error");
         }
     }
@@ -436,8 +436,8 @@
 
     $('#saveBtn').off('click').on('click', function () {
         var saveObj = [];
-        $('.loading').css('height', window.outerHeight + "px");
-        $('.loading').show();
+        //$('.loading').css('height', window.outerHeight + "px");
+        Xrm.Utility.showProgressIndicator("Processing Please wait...");
         setTimeout(function () {
             var allowSave = true;
             var existingDataRemoved = false;
@@ -551,14 +551,14 @@
 
             if (errorArry.length) {
                 populateErrorField(errorArry);
-                $('.loading').hide();
+                Xrm.Utility.closeProgressIndicator();
             } else {
                 $(".hasDatepicker").removeAttr("data-original-title");
                 $(".hasDatepicker").removeAttr("title");
                 $(".hasDatepicker").removeAttr('style');
                 if ((saveObj.length && allowSave) || (existingDataRemoved && allowSave)) {
                     var response = data.saveSchedules(saveObj, enrollmentObject);
-                    $('.loading').hide();
+                    Xrm.Utility.closeProgressIndicator();
                     if (typeof (response) == 'boolean' && response) {
                         prompt('Schedules are saved Successfully.', "Success")
                     } else if (typeof (response) == "object" && response != null && response.length) {
@@ -579,7 +579,7 @@
                             title: "Error Description",
                             resizable: false,
                             height: "400",
-                            draggable: false,
+                            draggable: true,
                             modal: true,
                             width: 800,
                             buttons: {
@@ -588,6 +588,9 @@
                                 }
                             }
                         });
+                        // Make the dialog centered when rendering the next time
+                        $(".ui-dialog").css("top", "25%");
+                        $(".ui-dialog").css("left", "11%");
                     }
                     else {
                         prompt(response, "Error");
@@ -595,10 +598,10 @@
                 }
                 else if (saveObj.length == 0) {
                     prompt("Please add some data", "Error");
-                    $('.loading').hide();
+                    Xrm.Utility.closeProgressIndicator();
                 }
                 else {
-                    $('.loading').hide();
+                    Xrm.Utility.closeProgressIndicator();
                 }
             }
         }, 50);
@@ -1084,8 +1087,8 @@
     }
 
     function populateAllTimings(dayCode,index) {
-        var startTiming = 480;
-        var endTiming = 1200;
+        var startTiming = 360;
+        var endTiming = 1320;
         var defaultTimeInterval = 15;
         var timingArry = [];
         var ConvertedTimingArry = [];
