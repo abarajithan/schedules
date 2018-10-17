@@ -212,7 +212,7 @@
 								'</div>' + endDateTemplate +
 								'<div class="picker">' +
 									'<div id="' + day + '-start-timepicker-' + index + '" class="timing-dropdown btn-group">' +
-							            '<button disabled value="' + startTime + '" id="' + day + '-start-timepicker-' + index + '-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown">' +
+							            '<button disabled value="' + startTime + '" id="' + day + '-start-timepicker-' + index + '-btn" class="btn dropdown-toggle timing-dropdown-btn" data-toggle="dropdown" timings-id="' + filterByDay[j]['hub_timingsid'] + '">' +
 							            startTime +
 							          '</button>' +
 							          '<ul class="dropdown-menu"></ul>' +
@@ -224,7 +224,7 @@
 									'</div>' +
 								'</div>' +
 								'<div class="remove_existing existingRecord visibility-on removeRow">' +
-									'<img x-id="' + day + '-' + index + '" day="' + day + '"id="remove-' + day + '-' + index + '" src="/webresources/hub_/schedule/images/remove.png">' +
+									'<img x-id="' + day + '-' + index + '" day="' + day + '"id="remove-' + day + '-' + index + '" src="/webresources/hub_/schedule/images/remove.png" modifiedOn="' + new Date(filterByDay[j]['modifiedon']) + '">' +
 								'</div>';
                 if (!j) {
                     template += '<div class="add_img">' +
@@ -358,8 +358,8 @@
         Xrm.Utility.showProgressIndicator("Processing Please wait...");
         var deletedSchedule = convertObjectsForService(day, index, status_Deleted);
         var deleteStatus = data.deleteSchedules(deletedSchedule, enrollmentObject);
-        $("." + rowId).removeAttr("id");
         if (typeof (deleteStatus) == 'boolean' && deleteStatus) {
+            $("." + rowId).removeAttr("id");
             Xrm.Utility.closeProgressIndicator();
             if (childrens.length == 1) {
                 var startTimepicker = $('#' + day + '-start-timepicker-' + index + '-btn');
@@ -427,7 +427,13 @@
         var startDatePicker = $("#" + day + "-start-datepicker-" + index);
         var startDate = $(startDatePicker).val();
         if ($(startDatePicker).attr("disabled")) {
-            deleteConfirmationPopup("Are you sure you want to delete the schedule ?", event);
+            var modifiedDate = $(event.target).attr('modifiedOn');
+            var checkIfNewRecord = checkForTimeDiff(new Date(modifiedDate));
+            if (modifiedDate == "Invalid" || checkIfNewRecord) {
+                deleteConfirmationPopup("Are you sure you want to delete the schedule ?", event);
+            } else {
+                prompt("Please try after some time..","Error");
+            }
         } else {
             removeSchedule(event);
         }
@@ -441,6 +447,7 @@
         setTimeout(function () {
             var allowSave = true;
             var existingDataRemoved = false;
+            var newRecordModified = false;
             var errorArry = [];
             for (var i = 0; i < dayArray.length; i++) {
                 var childrens = $("#" + dayArray[i].dayCode + "-td").children();
@@ -521,7 +528,14 @@
                                 prompt("One of the selected Start Date is greater than the End Date.", "Error");
                                 allowSave = false;
                                 break;
+                            } else if ($("#remove-" + dayArray[i].dayCode +"-"+ j).attr("modifiedon")) {
+                                var modifiedOn = new Date($("#remove-" + dayArray[i].dayCode +"-"+ j).attr("modifiedon"));
+                                var checkIfNewRecord = checkForTimeDiff(modifiedOn);
+                                if (!checkIfNewRecord) {
+                                    newRecordModified = true
+                                }
                             }
+                            
                         }
                         // var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
                         if (startTime == "") {
@@ -548,8 +562,13 @@
                     }
                 }
             }
-
-            if (errorArry.length) {
+            if ($(".invalidEndDate").length) {
+                miscErrors = true;
+            }
+            if (errorArry.length || newRecordModified || miscErrors) {
+                if (!errorArry.length && newRecordModified) {
+                    prompt("Please try after some time","Error")
+                }
                 populateErrorField(errorArry);
                 Xrm.Utility.closeProgressIndicator();
             } else {
@@ -953,7 +972,7 @@
             show: {
                 effect: 'slide',
                 complete: function () {
-                    $(".loading").hide();
+                    Xrm.Utility.closeProgressIndicator();
                 }
             },
             buttons: {
@@ -1157,6 +1176,38 @@
         });
         errorTableTemplate += "</table>";
         $("#overlapDialog").append(errorTableTemplate);
+    }
+
+    function checkForTimeDiff(lastModified) {
+        var currentTime = new Date().getTime();
+        var diff = (currentTime - lastModified.getTime());
+        diff = Math.floor(diff / 1000 / 60);
+        if (diff > 2) {
+            return true;
+        }
+        return false;
+    }
+
+    function scheduleEndDateValidator(day, endDate, endDatePicker) {
+        var endDateValidation = {};
+        for (var i = 0; i < timingsData.length; i++) {
+            if (day[0].dayId == timingsData[i]['hub_days']) {
+                if (endDate && timingsData[i].hub_effectiveenddate && endDate.getTime() > new Date(moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
+                    endDateValidation.flag = true;
+                    endDateValidation.endDate = moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY");
+                }
+            }
+        }
+        if (endDateValidation.flag) {
+            endDatePicker.css("border", "2px solid red");
+            endDatePicker.attr("title", "The corresponding Instructional Hour ends on - " + endDateValidation.endDate +".");
+            endDatePicker.attr("data-original-title", "The corresponding Instructional Hour ends on " + endDateValidation.endDate +".");
+            $(endDatePicker).tooltip({
+                tooltipClass: "custom-conflict",
+                track: true,
+            });
+        }
+        return endDateValidation;
     }
 
 })();
