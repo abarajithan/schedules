@@ -432,7 +432,7 @@
             if (modifiedDate == "Invalid" || checkIfNewRecord) {
                 deleteConfirmationPopup("Are you sure you want to delete the schedule ?", event);
             } else {
-                prompt("Please try after some time..","Error");
+                prompt("Please try after some time..", "Error");
             }
         } else {
             removeSchedule(event);
@@ -528,14 +528,14 @@
                                 prompt("One of the selected Start Date is greater than the End Date.", "Error");
                                 allowSave = false;
                                 break;
-                            } else if ($("#remove-" + dayArray[i].dayCode +"-"+ j).attr("modifiedon")) {
-                                var modifiedOn = new Date($("#remove-" + dayArray[i].dayCode +"-"+ j).attr("modifiedon"));
+                            } else if ($("#remove-" + dayArray[i].dayCode + "-" + j).attr("modifiedon")) {
+                                var modifiedOn = new Date($("#remove-" + dayArray[i].dayCode + "-" + j).attr("modifiedon"));
                                 var checkIfNewRecord = checkForTimeDiff(modifiedOn);
                                 if (!checkIfNewRecord) {
                                     newRecordModified = true
                                 }
                             }
-                            
+
                         }
                         // var startTime = $(childrens[j]).find('#'+dayArray[i].dayCode+'-start-timepicker-'+j+'-btn').val();
                         if (startTime == "") {
@@ -562,12 +562,12 @@
                     }
                 }
             }
-            if ($(".invalidEndDate").length) {
-                miscErrors = true;
-            }
-            if (errorArry.length || newRecordModified || miscErrors) {
+            //if ($(".invalidEndDate").length) {
+            //    miscErrors = true;
+            //}
+            if (errorArry.length || newRecordModified) {
                 if (!errorArry.length && newRecordModified) {
-                    prompt("Please try after some time","Error")
+                    prompt("Please try after some time", "Error")
                 }
                 populateErrorField(errorArry);
                 Xrm.Utility.closeProgressIndicator();
@@ -587,7 +587,7 @@
                             $(".messageHeader:not(.overlap)").remove();
                             $(".errorDetailsTable").remove();
                         }
-                        $.each(response, function (index,res) {
+                        $.each(response, function (index, res) {
                             if (res.type == 4) {
                                 overlappingScheduleDialog(res.objErrorRecords);
                             } else {
@@ -856,10 +856,10 @@
                             }
                         } else {
                             if (date.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
-                                    fallsInRange = true;
-                                } else if (date.getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime() &&
-                                           endDate.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
-                                           fallsInRange = true;
+                                fallsInRange = true;
+                            } else if (date.getTime() < new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime() &&
+                                       endDate.getTime() >= new Date(moment(timingsData[i].hub_effectivestartdate).format("MM-DD-YYYY")).getTime()) {
+                                fallsInRange = true;
                             }
                         }
                     } else if (timingsData[i].hub_effectiveenddate && date.getTime() <= new Date(moment(timingsData[i].hub_effectiveenddate).format("MM-DD-YYYY")).getTime()) {
@@ -880,8 +880,8 @@
                 for (var i = 0; i < timingArry.length; i++) {
                     var convertedTime = tConvert(convertMinsNumToTime(timingArry[i]));
                     if (ConvertedTimingArry.indexOf(convertedTime) == -1) {
-                            ConvertedTimingArry.push(convertedTime);
-                        }
+                        ConvertedTimingArry.push(convertedTime);
+                    }
                 }
             }
             if (ConvertedTimingArry.length) {
@@ -1081,7 +1081,7 @@
     function overlappingScheduleDialog(response) {
         $("#enrollmentTable").removeClass("displayNone");
         $(".messageHeader").removeClass("displayNone");
-        var overlappingTableBody = $("#enrollmentTable"); 
+        var overlappingTableBody = $("#enrollmentTable");
         var enrollmentBody = "";
         $('.enrollmentRow').remove();
         for (var i = 0; i < response.length; i++) {
@@ -1105,7 +1105,7 @@
         }
     }
 
-    function populateAllTimings(dayCode,index) {
+    function populateAllTimings(dayCode, index) {
         var startTiming = 360;
         var endTiming = 1320;
         var defaultTimeInterval = 15;
@@ -1147,7 +1147,7 @@
         }
     }
 
-    function populateErrorDetails (errorObject) {
+    function populateErrorDetails(errorObject) {
         var errorTableTemplate = '<hr style = "border: 1px solid #8d8d8d;"><div class= "messageHeader">' + errorObject.message + '</div><table class="errorDetailsTable" style="width: 100%;margin:0px;">' +
                                       '<tr id="errorDetailsHeader" class="dialogheader">' +
                                           '<td>Day</td>' +
@@ -1157,7 +1157,7 @@
                                           '<td>End Time</td>' +
                                       '</tr>';
         var errorTable = $(errorTableTemplate).find("table");
-        $.each(errorObject.objErrorRecords, function (key,obj) {
+        $.each(errorObject.objErrorRecords, function (key, obj) {
             var enrollmentDay = dayArray.filter(function (x) {
                 if (x.dayId == obj["hub_day"]) {
                     return x;
@@ -1171,8 +1171,8 @@
             errorTableTemplate += "<tr class='errorObjRow'><td>" + enrollmentDay[0].dayValue +
                                 "</td><td>" + moment(obj["hub_effectivestartdate"], "YYYY/MM/DD").format("MM/DD/YYYY") +
                                 "</td><td>" + obj["hub_effectiveenddate"] +
-                                "</td><td>" +tConvert(convertMinsNumToTime(obj["hub_starttime"])) +
-                                "</td><td>" +tConvert(convertMinsNumToTime(obj["hub_endtime"])) + "</td></tr>";
+                                "</td><td>" + tConvert(convertMinsNumToTime(obj["hub_starttime"])) +
+                                "</td><td>" + tConvert(convertMinsNumToTime(obj["hub_endtime"])) + "</td></tr>";
         });
         errorTableTemplate += "</table>";
         $("#overlapDialog").append(errorTableTemplate);
@@ -1200,8 +1200,8 @@
         }
         if (endDateValidation.flag) {
             endDatePicker.css("border", "2px solid red");
-            endDatePicker.attr("title", "The corresponding Instructional Hour ends on - " + endDateValidation.endDate +".");
-            endDatePicker.attr("data-original-title", "The corresponding Instructional Hour ends on " + endDateValidation.endDate +".");
+            endDatePicker.attr("title", "The corresponding Instructional Hour ends on - " + endDateValidation.endDate + ".");
+            endDatePicker.attr("data-original-title", "The corresponding Instructional Hour ends on " + endDateValidation.endDate + ".");
             $(endDatePicker).tooltip({
                 tooltipClass: "custom-conflict",
                 track: true,
